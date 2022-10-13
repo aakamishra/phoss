@@ -7,6 +7,7 @@ import os
 from ray.air.config import RunConfig
 import ray
 import argparse
+from datetime import datetime
 import json
 import pandas as pd
 import numpy as np
@@ -273,6 +274,7 @@ class RayRunnerAPI:
         runner.generate_simulation()
 
         if verbose: print("Running Ray Tune Program")
+        timestamp = datetime.now()
         results = runner.run()
 
         if verbose: print("Moving data to checkpoint csv")
@@ -283,13 +285,33 @@ class RayRunnerAPI:
         print("Saving results at", path)
         if not os.path.exists(path):
             os.mkdir(path)
-        np.savetxt(os.path.join(path, runner.simulation_name + "-true-sim.csv"),
-                   runner.landscaper.true_loss, delimiter=",")
-        np.savetxt(os.path.join(path, runner.simulation_name + "-gen-sim.csv"),
-                   runner.landscaper.simulated_loss, delimiter=",")
+        true_sim_path = os.path.join(path,
+                                     runner.simulation_name + "-true-sim.csv")
+        gen_sim_path = os.path.join(path,
+                                    runner.simulation_name + "-gen-sim.csv")
+        np.savetxt(true_sim_path, runner.landscaper.true_loss, delimiter=",")
+        np.savetxt(gen_sim_path, runner.landscaper.simulated_loss, delimiter=",")
 
         # move total data to csv
-        data.to_csv(os.path.join(path, runner.simulation_name + "-data.csv"))
+        data_path = os.path.join(path, runner.simulation_name + "-data.csv")
+        data.to_csv(data_path)
+
+        # perform checkpointing
+        checkpoint_obj = {
+            "num_actors": runner.num_actors,
+            "max_num_epochs": runner.max_num_epochs,
+            "scheduler_name": runner.scheduler_name,
+            "gen_sim_file": gen_sim_path,
+            "true_sim_file": true_sim_path,
+            "simulation_name": runner.simulation_name,
+            "data_file": data_path,
+            "num_samples": runner.num_samples,
+        }
+        serialized_timestamp = timestamp.strftime("%Y-%m-%d-%H-%M-%S")
+        fcheckpoint = os.path.join(
+            path, "checkpoint-{}.json".format(serialized_timestamp))
+        with open(fcheckpoint, "w") as fp:
+            json.dump(checkpoint_obj, fp, indent=4)
 
         print("done.")
 
