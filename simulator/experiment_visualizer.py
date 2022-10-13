@@ -1,4 +1,5 @@
 import json
+from tabnanny import check
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,18 +8,31 @@ from collections import OrderedDict
 
 
 class ExperimentVisualizer:
-    def __init__(self, checkpoint_dir: str):
-        with open(checkpoint_dir, encoding="utf-8") as f:
-            config = json.loads(f)
-
+    def __init__(self, checkpoint_file: str=None, checkpoint_dict=None):
+        if checkpoint_dict:
+            config = checkpoint_dict
             self.num_workers = config.get("num_actors", 8)
             self.max_num_epochs = config.get("max_num_epochs", 100)
             self.scheduler_name = config.get("scheduler_name", "")
             self.gen_sim_file = config.get("gen_sim_file", "")
             self.true_sim_file = config.get("true_sim_file", "")
             self.simulation_name = config.get("simulation_name", "")
-            self.data_file = config.get("trial_data_file", "")
-            self.num_samples = config.get("num_samples", "")
+            self.data_file = config.get("data_file", "")
+            self.num_samples
+            
+        else:
+            with open(checkpoint_file, encoding="utf-8") as f:
+                print(checkpoint_file)
+                config = json.load(f)
+
+                self.num_workers = config.get("num_actors", 8)
+                self.max_num_epochs = config.get("max_num_epochs", 100)
+                self.scheduler_name = config.get("scheduler_name", "")
+                self.gen_sim_file = config.get("gen_sim_file", "")
+                self.true_sim_file = config.get("true_sim_file", "")
+                self.simulation_name = config.get("simulation_name", "")
+                self.data_file = config.get("data_file", "")
+                self.num_samples = config.get("num_samples", "")
 
         self.simulated_loss = np.genfromtxt(self.gen_sim_file, delimiter=',')
         self.true_loss = np.genfromtxt(self.true_sim_file, delimiter=',')
