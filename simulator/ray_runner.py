@@ -1,3 +1,4 @@
+from typing import Optional
 from schedulers import Scheduler
 from trainables import SimulatedTrainable
 from landscaper import NormalLossDecayLandscape
@@ -154,7 +155,7 @@ class RayRunnerAPI:
         scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
         save_dir: str = '',
-    ) -> None:
+    ):
         """
         Public function to be called as an API endpoint.
         """
@@ -162,7 +163,7 @@ class RayRunnerAPI:
             if not scheduler_object:
                 print("Custom scheduler object not provided!")
                 return
-            RayRunnerAPI._call_custom_simulator(
+            return RayRunnerAPI._call_custom_simulator(
                 scheduler_object,
                 num_samples=num_samples,
                 max_num_epochs=max_num_epochs,
@@ -176,7 +177,7 @@ class RayRunnerAPI:
             if sched_name not in SCHEDULER_CONFIG_NAMES:
                 print("Could not find sched_name {} in \
                     SCHEDULER_CONFIG_NAMES".format(sched_name))
-            RayRunnerAPI._call_common_simulator(
+            return RayRunnerAPI._call_common_simulator(
                 sched_name,
                 num_samples=num_samples,
                 max_num_epochs=max_num_epochs,
@@ -201,7 +202,7 @@ class RayRunnerAPI:
         scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
         save_dir: str = '',
-    ) -> None:
+    ):
         """
         Helper method used to call RayRunner on a common scheduler such as ASHA,
         Hyperband, or PTB.
@@ -226,7 +227,8 @@ class RayRunnerAPI:
             max_num_epochs=max_num_epochs,
             scheduler_name=sched_name,
             seed=seed)
-        RayRunnerAPI._run_simulation(runner, verbose=verbose, save_dir=save_dir)
+        return RayRunnerAPI._run_simulation(runner, verbose=verbose,
+                                            save_dir=save_dir)
 
     def _call_custom_simulator(
         scheduler,
@@ -261,11 +263,12 @@ class RayRunnerAPI:
             max_num_epochs=max_num_epochs,
             scheduler_name="custom",
             seed=seed)
-        RayRunnerAPI._run_simulation(runner, verbose=verbose, save_dir=save_dir)
+        return RayRunnerAPI._run_simulation(runner, verbose=verbose,
+                                            save_dir=save_dir)
 
     def _run_simulation(
         runner: RayRunner, verbose: bool = 0, save_dir: str = ''
-    ) -> None:
+    ):
         """
         Runs the simulator given a RayRunner instance and saves the results as a
         set of CSV files.
@@ -314,6 +317,7 @@ class RayRunnerAPI:
             json.dump(checkpoint_obj, fp, indent=4)
 
         print("done.")
+        return checkpoint_obj
 
 
 if __name__ == "__main__":
@@ -341,14 +345,14 @@ if __name__ == "__main__":
         RayRunnerAPI.call_simulator(
             args.sched_name,
             num_samples=args.num_samples,
-             max_num_epochs=args.max_num_epochs,
-             gpus_per_trial=args.gpus_per_trial,
-             cpus_per_trial=args.cpus_per_trial,
-             num_actors=args.num_actors,
-             simulator_config=args.simulator_config,
-             scheduler_config=args.scheduler_config,
-             seed=args.seed,
-             verbose=args.verbose,
-             save_dir=args.save)
+            max_num_epochs=args.max_num_epochs,
+            gpus_per_trial=args.gpus_per_trial,
+            cpus_per_trial=args.cpus_per_trial,
+            num_actors=args.num_actors,
+            simulator_config=args.simulator_config,
+            scheduler_config=args.scheduler_config,
+            seed=args.seed,
+            verbose=args.verbose,
+            save_dir=args.save)
     except Exception as e:
         print(e)
