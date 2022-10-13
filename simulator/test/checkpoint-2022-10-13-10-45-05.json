@@ -1,0 +1,10 @@
+{
+    "num_actors": 16,
+    "max_num_epochs": 100,
+    "scheduler_name": "ASHA",
+    "gen_sim_file": "/Users/amishra/DHPOSS/DHPOSS/simulator/test/test-run-n-100-t-100-ASHA-seed-243-gen-sim.csv",
+    "true_sim_file": "/Users/amishra/DHPOSS/DHPOSS/simulator/test/test-run-n-100-t-100-ASHA-seed-243-true-sim.csv",
+    "simulation_name": "test-run-n-100-t-100-ASHA-seed-243",
+    "data_file": "/Users/amishra/DHPOSS/DHPOSS/simulator/test/test-run-n-100-t-100-ASHA-seed-243-data.csv",
+    "num_samples": 100
+}

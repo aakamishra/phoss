@@ -1,9 +1,9 @@
 {"STARTING_MU_ARGS":
     {"mu": 1.0, 
-    "std": 0.1},
+    "std": 0.15},
  "ENDING_MU_ARGS":
-    {"mu": 0.3, 
-    "std": 0.05},
+    {"mu": 0.2, 
+    "std": 0.001},
  "STARTING_STD_ARGS":
     {"mu": 0.02, 
     "std": 0.005},
