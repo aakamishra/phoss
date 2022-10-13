@@ -152,6 +152,7 @@ class RayRunnerAPI:
         simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
+        save_dir: str = '',
     ) -> None:
         """
         Public function to be called as an API endpoint.
@@ -168,7 +169,8 @@ class RayRunnerAPI:
                 cpus_per_trial=cpus_per_trial,
                 num_actors=num_actors,
                 seed=seed,
-                verbose=verbose)
+                verbose=verbose,
+                save_dir=save_dir)
         else:
             if sched_name not in SCHEDULER_CONFIG_NAMES:
                 print("Could not find sched_name {} in \
@@ -183,7 +185,8 @@ class RayRunnerAPI:
                 seed=seed,
                 simulator_config=simulator_config,
                 scheduler_config=scheduler_config,
-                verbose=verbose)
+                verbose=verbose,
+                save_dir=save_dir)
 
     def _call_common_simulator(
         sched_name: str,
@@ -196,6 +199,7 @@ class RayRunnerAPI:
         simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
+        save_dir: str = '',
     ) -> None:
         """
         Helper method used to call RayRunner on a common scheduler such as ASHA,
@@ -221,7 +225,7 @@ class RayRunnerAPI:
             max_num_epochs=max_num_epochs,
             scheduler_name=sched_name,
             seed=seed)
-        RayRunnerAPI._run_simulation(runner, verbose=verbose)
+        RayRunnerAPI._run_simulation(runner, verbose=verbose, save_dir=save_dir)
 
     def _call_custom_simulator(
         scheduler,
@@ -232,6 +236,7 @@ class RayRunnerAPI:
         num_actors: int = 4,
         seed: int = 109,
         verbose: int = 0,
+        save_dir: str = '',
     ) -> None:
         """
         Helper method used to call Ray Runner on a custom-defined scheduler.
@@ -255,9 +260,11 @@ class RayRunnerAPI:
             max_num_epochs=max_num_epochs,
             scheduler_name="custom",
             seed=seed)
-        RayRunnerAPI._run_simulation(runner, verbose=verbose)
+        RayRunnerAPI._run_simulation(runner, verbose=verbose, save_dir=save_dir)
 
-    def _run_simulation(runner: RayRunner, verbose: bool = 0) -> None:
+    def _run_simulation(
+        runner: RayRunner, verbose: bool = 0, save_dir: str = ''
+    ) -> None:
         """
         Runs the simulator given a RayRunner instance and saves the results as a
         set of CSV files.
@@ -272,13 +279,17 @@ class RayRunnerAPI:
         dfs = {result.log_dir: result.metrics_dataframe for result in results}
         data = pd.concat(dfs.values(), ignore_index=True)
 
-        np.savetxt(runner.simulation_name + "-true-sim.csv",
+        path = os.path.join(os.getcwd(), save_dir) if save_dir else os.getcwd()
+        print("Saving results at", path)
+        if not os.path.exists(path):
+            os.mkdir(path)
+        np.savetxt(os.path.join(path, runner.simulation_name + "-true-sim.csv"),
                    runner.landscaper.true_loss, delimiter=",")
-        np.savetxt(runner.simulation_name + "-gen-sim.csv",
+        np.savetxt(os.path.join(path, runner.simulation_name + "-gen-sim.csv"),
                    runner.landscaper.simulated_loss, delimiter=",")
 
         # move total data to csv
-        data.to_csv(runner.simulation_name + "-data.csv")
+        data.to_csv(os.path.join(path, runner.simulation_name + "-data.csv"))
 
         print("done.")
 
@@ -299,6 +310,7 @@ if __name__ == "__main__":
     parser.add_argument('--scheduler-config',
                         type=str,
                         default=DEFAULT_SCHEDULER_CONFIG)
+    parser.add_argument('--save', type=str, default='')
 
     args = parser.parse_args()
 
@@ -314,6 +326,7 @@ if __name__ == "__main__":
              simulator_config=args.simulator_config,
              scheduler_config=args.scheduler_config,
              seed=args.seed,
-             verbose=args.verbose)
+             verbose=args.verbose,
+             save_dir=args.save)
     except Exception as e:
         print(e)
