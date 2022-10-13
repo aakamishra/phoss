@@ -138,7 +138,51 @@ class RayRunner:
         return results
 
 
-def main(
+class RayRunnerAPI:
+
+    def call_simulator(
+        sched_name: str,
+        num_samples: int = 16,
+        max_num_epochs: int = 10,
+        gpus_per_trial: int = 0,
+        cpus_per_trial: int = 1,
+        num_actors: int = 4,
+        seed: int = 109,
+        scheduler_object = None,
+        simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
+        scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
+        verbose: int = 0,
+    ) -> None:
+        if sched_name.lower() == "custom":
+            if not scheduler_object:
+                print("Custom scheduler object not provided!")
+                return
+            RayRunnerAPI._call_custom_simulator(
+                scheduler_object,
+                num_samples=num_samples,
+                max_num_epochs=max_num_epochs,
+                gpus_per_trial=gpus_per_trial,
+                cpus_per_trial=cpus_per_trial,
+                num_actors=num_actors,
+                seed=seed,
+                verbose=verbose)
+        else:
+            if sched_name not in SCHEDULER_CONFIG_NAMES:
+                print("Could not find sched_name {} in \
+                    SCHEDULER_CONFIG_NAMES".format(sched_name))
+            RayRunnerAPI._call_common_simulator(
+                sched_name,
+                num_samples=num_samples,
+                max_num_epochs=max_num_epochs,
+                gpus_per_trial=gpus_per_trial,
+                cpus_per_trial=cpus_per_trial,
+                num_actors=num_actors,
+                seed=seed,
+                simulator_config=simulator_config,
+                scheduler_config=scheduler_config,
+                verbose=verbose)
+
+    def _call_common_simulator(
         sched_name: str,
         num_samples: int = 16,
         max_num_epochs: int = 10,
@@ -149,42 +193,78 @@ def main(
         simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
-) -> None:
+    ) -> None:
+        # loading scheduler config
+        if verbose:
+            print("Loading config file for scheduler: ", scheduler_config)
+        with open(scheduler_config, encoding='utf-8') as f:
+            scheduler_config = json.load(f)
+        scheduler_config['max_t'] = max_num_epochs
 
-    # loading scheduler config
-    if verbose: print("Loading config file for scheduler: ", scheduler_config)
-    with open(scheduler_config, encoding='utf-8') as f:
-        scheduler_config = json.load(f)
-    scheduler_config['max_t'] = max_num_epochs
+        if verbose:
+            print("Initializing Ray Runner")
+        runner = RayRunner(
+            num_samples=num_samples,
+            num_actors=num_actors,
+            cpus_per_trial=cpus_per_trial,
+            gpus_per_trial=gpus_per_trial,
+            simulator_config=simulator_config,
+            scheduler_config=scheduler_config,
+            max_num_epochs=max_num_epochs,
+            scheduler_name=sched_name,
+            seed=seed)
+        RayRunnerAPI._run_simulation(runner, verbose=verbose)
 
-    if verbose: print("Initializing Ray Runner")
-    runner = RayRunner(num_samples=num_samples,
-                       num_actors=num_actors,
-                       cpus_per_trial=cpus_per_trial,
-                       gpus_per_trial=gpus_per_trial,
-                       simulator_config=simulator_config,
-                       scheduler_config=scheduler_config,
-                       max_num_epochs=max_num_epochs,
-                       scheduler_name=sched_name,
-                       seed=seed)
+    def _call_custom_simulator(
+        scheduler,
+        num_samples: int = 16,
+        max_num_epochs: int = 10,
+        gpus_per_trial: int = 0,
+        cpus_per_trial: int = 1,
+        num_actors: int = 4,
+        seed: int = 109,
+        verbose: int = 0,
+    ) -> None:
+        # loading scheduler config
+        if verbose:
+            print("Loading config file for scheduler: ", scheduler_config)
+        with open(scheduler_config, encoding='utf-8') as f:
+            scheduler_config = json.load(f)
+        scheduler_config['max_t'] = max_num_epochs
 
-    if verbose: print("Generating loss simulation")
-    runner.generate_simulation()
+        if verbose:
+            print("Initializing Ray Runner")
+        runner = RayRunner(
+            num_samples=num_samples,
+            num_actors=num_actors,
+            cpus_per_trial=cpus_per_trial,
+            gpus_per_trial=gpus_per_trial,
+            scheduler_object=scheduler,
+            max_num_epochs=max_num_epochs,
+            scheduler_name="custom",
+            seed=seed)
+        RayRunnerAPI._run_simulation(runner, verbose=verbose)
 
-    if verbose: print("Running Ray Tune Program")
-    results = runner.run()
+    def _run_simulation(runner: RayRunner, verbose: bool = 0) -> None:
+        if verbose: print("Generating loss simulation")
+        runner.generate_simulation()
 
-    if verbose: print("Moving data to checkpoint csv")
-    dfs = {result.log_dir: result.metrics_dataframe for result in results}
-    data = pd.concat(dfs.values(), ignore_index=True)
+        if verbose: print("Running Ray Tune Program")
+        results = runner.run()
 
-    np.savetxt(runner.simulation_name + "-true-sim.csv", runner.landscaper.true_loss, delimiter=",")
-    np.savetxt(runner.simulation_name + "-gen-sim.csv", runner.landscaper.simulated_loss, delimiter=",")
-    
-    # move total data to csv
-    data.to_csv(runner.simulation_name + "-data.csv")
+        if verbose: print("Moving data to checkpoint csv")
+        dfs = {result.log_dir: result.metrics_dataframe for result in results}
+        data = pd.concat(dfs.values(), ignore_index=True)
 
-    print("done.")
+        np.savetxt(runner.simulation_name + "-true-sim.csv",
+                   runner.landscaper.true_loss, delimiter=",")
+        np.savetxt(runner.simulation_name + "-gen-sim.csv",
+                   runner.landscaper.simulated_loss, delimiter=",")
+
+        # move total data to csv
+        data.to_csv(runner.simulation_name + "-data.csv")
+
+        print("done.")
 
 
 if __name__ == "__main__":
@@ -207,10 +287,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        assert args.sched_name in SCHEDULER_CONFIG_NAMES
-        if args.verbose: print("Starting main program . . .")
-        main(args.sched_name,
-             num_samples=args.num_samples,
+        if args.verbose: print("Starting main program...")
+        RayRunnerAPI.call_simulator(
+            args.sched_name,
+            num_samples=args.num_samples,
              max_num_epochs=args.max_num_epochs,
              gpus_per_trial=args.gpus_per_trial,
              cpus_per_trial=args.cpus_per_trial,
