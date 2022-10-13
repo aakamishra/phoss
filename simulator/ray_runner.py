@@ -153,6 +153,9 @@ class RayRunnerAPI:
         scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
     ) -> None:
+        """
+        Public function to be called as an API endpoint.
+        """
         if sched_name.lower() == "custom":
             if not scheduler_object:
                 print("Custom scheduler object not provided!")
@@ -194,6 +197,11 @@ class RayRunnerAPI:
         scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
     ) -> None:
+        """
+        Helper method used to call RayRunner on a common scheduler such as ASHA,
+        Hyperband, or PTB.
+        To be called from `RayRunnerAPI.call_simulator`.
+        """
         # loading scheduler config
         if verbose:
             print("Loading config file for scheduler: ", scheduler_config)
@@ -225,6 +233,10 @@ class RayRunnerAPI:
         seed: int = 109,
         verbose: int = 0,
     ) -> None:
+        """
+        Helper method used to call Ray Runner on a custom-defined scheduler.
+        To be called from `RayRunnerAPI.call_simulator`.
+        """
         # loading scheduler config
         if verbose:
             print("Loading config file for scheduler: ", scheduler_config)
@@ -246,6 +258,10 @@ class RayRunnerAPI:
         RayRunnerAPI._run_simulation(runner, verbose=verbose)
 
     def _run_simulation(runner: RayRunner, verbose: bool = 0) -> None:
+        """
+        Runs the simulator given a RayRunner instance and saves the results as a
+        set of CSV files.
+        """
         if verbose: print("Generating loss simulation")
         runner.generate_simulation()
 
