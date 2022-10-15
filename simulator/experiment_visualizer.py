@@ -8,7 +8,7 @@ from collections import OrderedDict
 
 
 class ExperimentVisualizer:
-    def __init__(self, checkpoint_file: str=None, checkpoint_dict=None):
+    def __init__(self, checkpoint_file: str=None, checkpoint_dict=None, show=False):
         if checkpoint_dict:
             config = checkpoint_dict
             self.num_workers = config.get("num_actors", 8)
@@ -18,8 +18,8 @@ class ExperimentVisualizer:
             self.true_sim_file = config.get("true_sim_file", "")
             self.simulation_name = config.get("simulation_name", "")
             self.data_file = config.get("data_file", "")
-            self.num_samples
-            
+            self.num_samples = config.get("num_samples", 0)
+
         else:
             with open(checkpoint_file, encoding="utf-8") as f:
                 print(checkpoint_file)
@@ -39,6 +39,7 @@ class ExperimentVisualizer:
         self.total_data_file = pd.read_csv(self.data_file)
         self.average_regret = []
         self.cumulative_regret = []
+        self.show = show
 
     def get_heatmap(self, file_name: str):
         """Generate Scheduler Loss Heat Map"""
@@ -53,8 +54,9 @@ class ExperimentVisualizer:
         plt.ylabel("Epochs")
         plt.title("Scheduled Runs Over Loss Surface")
         plt.savefig(file_name)
-        plt.show()
-    
+        if self.show:
+            plt.show()
+
     def plot_loss_curves(self, plot_name: str):
         time_range = list(range(self.max_num_epochs))
         fig = plt.figure(figsize=(12, 12))
@@ -77,8 +79,9 @@ class ExperimentVisualizer:
         plt.legend(by_label.values(), by_label.keys())
         plt.grid()
         plt.savefig(plot_name)
-        plt.show()
-    
+        if self.show():
+            plt.show()
+
     def calculate_regret(self):
         """Get average and cumulative regret"""
         avgs = []
@@ -95,22 +98,24 @@ class ExperimentVisualizer:
             sums.append(running_sum)
         self.average_regret = avgs
         self.cumulative_regret = sums
-    
+
     def plot_cumulative_regret(self, plot_name: str):
         plt.title(f"Average Regret for {self.num_workers}-Workers per Epoch")
         plt.xlabel("Epochs")
         plt.ylabel("Cumulative per Epoch Instance Regret")
         plt.plot(list(range(1, self.max_num_epochs)), self.cumulative_regret)
         plt.savefig(plot_name)
-        plt.show()
-    
+        if self.show:
+            plt.show()
+
     def plot_average_regret(self, plot_name: str):
         plt.title(f"Average Regret for {self.num_workers}-Workers per Epoch")
         plt.xlabel("Epochs")
         plt.ylabel("Cumulative per Epoch Instance Regret")
         plt.plot(list(range(1, self.max_num_epochs)), self.average_regret)
         plt.savefig(plot_name)
-        plt.show()
+        if self.show():
+            plt.show()
 
     def combined_seed_data_regret_curve(self, experiment_list, plot_name: str):
         cumulative_avg = self.average_regret
@@ -127,7 +132,5 @@ class ExperimentVisualizer:
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.savefig(plot_name)
-        plt.show()
-
-        
-
+        if self.show():
+            plt.show()
