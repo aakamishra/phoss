@@ -11,13 +11,11 @@ SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA"]
 
 class ExperimentGroup:
 
-    # experiment_configs takes in a list of tuples. Each tuple contains:
-    # 1. A string for a preexisting scheduler name
-    # 2. Seed
-    # 3. Optional scheduler object (if name is "custom")
     def __init__(
         self,
-        experiment_configs: List[Tuple[str, int, Any]],
+        scheduler_name: int,
+        scheduler_obj: Any,
+        seeds: List[int],
         num_samples: int = 16,
         max_num_epochs: int = 10,
         gpus_per_trial: int = 0,
@@ -28,7 +26,11 @@ class ExperimentGroup:
         verbose: int = 0,
         save_dir: str = '',
     ):
-        self.experiment_configs = experiment_configs
+        self.scheduler_name = scheduler_name
+        self.scheduler_obj = scheduler_obj
+        if not self._validate_scheduler_config():
+            return
+        self.seeds = seeds
         self.num_samples = num_samples
         self.max_num_epochs = max_num_epochs
         self.gpus_per_trial = gpus_per_trial
@@ -39,15 +41,13 @@ class ExperimentGroup:
         self.verbose = verbose
         self.save_dir = save_dir
 
-    def _validate_experiment_configs(self) -> bool:
-        print(self.experiment_configs)
-        for scheduler_name, _, scheduler_obj in self.experiment_configs:
-            if scheduler_name.lower() == 'custom' and not scheduler_obj:
-                print('Custom scheduler specified but object not passed in!')
-                return False
-            elif scheduler_name not in SCHEDULER_CONFIG_NAMES:
-                print('Could not find scheduler {}!'.format(scheduler_name))
-                return False
+    def _validate_scheduler_config(self) -> bool:
+        if self.scheduler_name.lower() == 'custom' and not self.scheduler_obj:
+            print('Custom scheduler specified but object not passed in!')
+            return False
+        elif self.scheduler_name not in SCHEDULER_CONFIG_NAMES:
+            print('Could not find scheduler {}!'.format(self.scheduler_name))
+            return False
         return True
 
     def _calculate_regret(
@@ -90,20 +90,17 @@ class ExperimentGroup:
         return averages
 
     def run(self) -> None:
-        if not self._validate_experiment_configs():
-            return
-
         # Run all individual experiments
         checkpoints = []
-        for scheduler_name, seed, scheduler_obj in self.experiment_configs:
+        for seed in self.seeds:
             checkpoint = ExperimentRunner.call_simulator(
-                scheduler_name,
+                self.scheduler_name,
                 num_samples=self.num_samples,
                 max_num_epochs=self.max_num_epochs,
                 gpus_per_trial=self.gpus_per_trial,
                 cpus_per_trial=self.cpus_per_trial,
                 num_actors=self.num_actors,
-                scheduler_object=scheduler_obj,
+                scheduler_object=self.scheduler_obj,
                 simulator_config=self.simulator_config,
                 scheduler_config=self.scheduler_config,
                 seed=seed,
@@ -112,7 +109,7 @@ class ExperimentGroup:
             )
             if not checkpoint:
                 print('Simulator failed for config with name {} and seed {}. '
-                      'Skipping!'.format(scheduler_name, seed))
+                      'Skipping!'.format(self.scheduler_name, seed))
             else:
                 checkpoints.append(checkpoint)
 
@@ -135,5 +132,5 @@ class ExperimentGroup:
 
 
 if __name__ == '__main__':
-    egroup = ExperimentGroup([('ASHA', 109, None)])
+    egroup = ExperimentGroup('ASHA', None, [109, 100])
     egroup.run()
