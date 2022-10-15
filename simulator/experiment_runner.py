@@ -20,6 +20,45 @@ DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
 SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA"]
 
 
+class CheckpointObject:
+
+    def __init__(
+        self,
+        num_actors: int,
+        max_num_epochs: int,
+        scheduler_name: str,
+        gen_sim_file: str,
+        true_sim_file: str,
+        simulation_name: str,
+        data_file: str, num_samples: int
+    ):
+        self.num_actors = num_actors
+        self.max_num_epochs = max_num_epochs
+        self.scheduler_name = scheduler_name
+        self.gen_sim_file = gen_sim_file
+        self.true_sim_file = true_sim_file
+        self.simulation_name = simulation_name
+        self.data_file = data_file
+        self.num_samples = num_samples
+
+    def persist_json(self, filename: str):
+        with open(filename, 'w') as fp:
+            json.dump(
+                {
+                    "num_actors": self.num_actors,
+                    "max_num_epochs": self.max_num_epochs,
+                    "scheduler_name": self.scheduler_name,
+                    "gen_sim_file": self.gen_sim_file,
+                    "true_sim_file": self.true_sim_file,
+                    "simulation_name": self.simulation_name,
+                    "data_file": self.data_file,
+                    "num_samples": self.num_samples,
+                },
+                fp,
+                indent=4
+            )
+
+
 class ExperimentRunner:
 
     def call_simulator(
@@ -35,14 +74,14 @@ class ExperimentRunner:
         scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
         save_dir: str = '',
-    ):
+    ) -> Optional[CheckpointObject]:
         """
         Public function to be called as an API endpoint.
         """
         if sched_name.lower() == "custom":
             if not scheduler_object:
                 print("Custom scheduler object not provided!")
-                return
+                return None
             return ExperimentRunner._call_custom_simulator(
                 scheduler_object,
                 num_samples=num_samples,
@@ -57,7 +96,7 @@ class ExperimentRunner:
             if sched_name not in SCHEDULER_CONFIG_NAMES:
                 print("Could not find sched_name {} in \
                     SCHEDULER_CONFIG_NAMES".format(sched_name))
-                return
+                return None
             return ExperimentRunner._call_common_simulator(
                 sched_name,
                 num_samples=num_samples,
@@ -83,7 +122,7 @@ class ExperimentRunner:
         scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
         save_dir: str = '',
-    ):
+    ) -> CheckpointObject:
         """
         Helper method used to call RayRunner on a common scheduler such as ASHA,
         Hyperband, or PTB.
@@ -121,7 +160,7 @@ class ExperimentRunner:
         seed: int = 109,
         verbose: int = 0,
         save_dir: str = '',
-    ) -> None:
+    ) -> CheckpointObject:
         """
         Helper method used to call Ray Runner on a custom-defined scheduler.
         To be called from `ExperimentRunner.call_simulator`.
@@ -149,7 +188,7 @@ class ExperimentRunner:
 
     def _run_simulation(
         runner: RayRunner, verbose: bool = 0, save_dir: str = ''
-    ):
+    ) -> CheckpointObject:
         """
         Runs the simulator given a RayRunner instance and saves the results as a
         set of CSV files.
@@ -181,24 +220,22 @@ class ExperimentRunner:
         data.to_csv(data_path)
 
         # perform checkpointing
-        checkpoint_obj = {
-            "num_actors": runner.num_actors,
-            "max_num_epochs": runner.max_num_epochs,
-            "scheduler_name": runner.scheduler_name,
-            "gen_sim_file": gen_sim_path,
-            "true_sim_file": true_sim_path,
-            "simulation_name": runner.simulation_name,
-            "data_file": data_path,
-            "num_samples": runner.num_samples,
-        }
+        checkpoint = CheckpointObject(
+            runner.num_actors,
+            runner.max_num_epochs,
+            runner.scheduler_name,
+            gen_sim_path,
+            true_sim_path,
+            runner.simulation_name,
+            data_path,
+            runner.num_samples)
         serialized_timestamp = timestamp.strftime("%Y-%m-%d-%H-%M-%S")
         fcheckpoint = os.path.join(
             path, "checkpoint-{}.json".format(serialized_timestamp))
-        with open(fcheckpoint, "w") as fp:
-            json.dump(checkpoint_obj, fp, indent=4)
+        checkpoint.persist_json(fcheckpoint)
 
-        print("done.")
-        return checkpoint_obj
+        print("Finished")
+        return checkpoint
 
 
 if __name__ == "__main__":
