@@ -1,12 +1,27 @@
 import numpy as np
 import pandas as pd
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 from experiment_runner import ExperimentRunner
 
 
 DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
 DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
 SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA"]
+
+
+class ExperimentGroupResults:
+
+    def __init__(
+        self,
+        scheduler_name: str,
+        group_size: int,
+        avg_mean_regret: List[float],
+        avg_cumulative_regret: List[float],
+    ):
+        self.scheduler_name = scheduler_name
+        self.group_size = group_size
+        self.avg_mean_regret = avg_mean_regret
+        self.avg_cumulative_regret = avg_cumulative_regret
 
 
 class ExperimentGroup:
@@ -89,7 +104,7 @@ class ExperimentGroup:
             averages.append(sum(sublst) / len(sublst))
         return averages
 
-    def run(self) -> None:
+    def run(self) -> Optional[ExperimentGroupResults]:
         # Run all individual experiments
         checkpoints = []
         for seed in self.seeds:
@@ -116,7 +131,7 @@ class ExperimentGroup:
         # Average the results if there are multiple checkpoints
         if not checkpoints:
             print('No available checkpoint objects!')
-            return
+            return None
         else:
             # Average individual regrets
             mean_regrets = []
@@ -127,8 +142,16 @@ class ExperimentGroup:
                 )
                 mean_regrets.append(mean_regret)
                 cumulative_regrets.append(cumulative_regret)
-            print('Mean regrets', self._average_n_lists(mean_regrets))
-            print('Cumlative regrets', self._average_n_lists(cumulative_regrets))
+            avg_mean_regrets = self._average_n_lists(mean_regrets)
+            print('Mean regrets', avg_mean_regrets)
+            avg_cumulative_regrets = self._average_n_lists(cumulative_regrets)
+            print('Cumlative regrets', avg_cumulative_regrets)
+            return ExperimentGroupResults(
+                self.scheduler_name,
+                len(checkpoints),
+                avg_mean_regrets,
+                avg_cumulative_regrets
+            )
 
 
 if __name__ == '__main__':
