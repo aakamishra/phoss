@@ -203,7 +203,7 @@ class ExperimentRunner:
         if verbose: print("Moving data to checkpoint csv")
         dfs = {result.log_dir: result.metrics_dataframe for result in results}
         data = pd.concat(dfs.values(), ignore_index=True)
-
+        ray.shutdown()
         path = os.path.join(os.getcwd(), save_dir) if save_dir else os.getcwd()
         print("Saving results at", path)
         if not os.path.exists(path):

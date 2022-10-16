@@ -135,7 +135,5 @@ class RayRunner:
         )
 
         results = tuner.fit()
-        ray.shutdown()
-
         return results
 
