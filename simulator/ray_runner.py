@@ -127,7 +127,7 @@ class RayRunner:
                 local_dir=os.getcwd() + '/results',
                 name=self.simulation_name,
                 callbacks=[CSVLoggerCallback()],
-                verbose=0,
+                verbose=self.verbose,
                 sync_config=tune.SyncConfig(
                     syncer=None  # Disable syncing
                 )
