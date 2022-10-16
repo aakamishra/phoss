@@ -38,11 +38,8 @@ class PredASHABracket(BaseBracket):
                   cur_rew: Optional[float]) -> str:
         action = TrialScheduler.CONTINUE
         for i, milestone, recorded in enumerate(self.rungs):
-            if (
-                cur_iter >= milestone
-                and trial.trial_id in recorded
-                and not self.stop_last_trials
-            ):
+            if (cur_iter >= milestone and trial.trial_id in recorded and
+                not self.stop_last_trials):
                 # If our result has been recorded for this trial already, the
                 # decision to continue training has already been made. Thus we
                 # can skip new cutoff calculation and just continue training.
@@ -76,6 +73,10 @@ class PredASHABracket(BaseBracket):
                     recorded[trial.trial_id] = cur_rew
                 break
         print('Bracket s: ', self.starting_rate, 'details: ', self.debug_str())
+        print(
+            'Bracket s: {}, details: {}'.format(self.starting_rate,
+                                                self.debug_str())
+        )
         return action
 
 
@@ -103,16 +104,6 @@ class PredAsyncHyperBandScheduler(BaseAsyncHyperBandScheduler):
             stop_last_trials=stop_last_trials,
             bracket_class=PredASHABracket
         )
-
-
-PredASHAScheduler = PredAsyncHyperBandScheduler
-
-if __name__ == '__main__':
-    sched = PredAsyncHyperBandScheduler(
-        grace_period=1, max_t=10, reduction_factor=2)
-    print(sched.debug_string())
-    bracket = sched._brackets[0]
-    print(bracket.cutoff({str(i): i for i in range(20)}))
 
 
 class Scheduler:
@@ -159,3 +150,13 @@ class Scheduler:
             return HyperBandScheduler(max_t=max_num_epochs,
                                       time_attr='training_iteration',
                                       reduction_factor=reduction_factor)
+
+
+PredASHAScheduler = PredAsyncHyperBandScheduler
+
+if __name__ == '__main__':
+    sched = PredAsyncHyperBandScheduler(
+        grace_period=1, max_t=10, reduction_factor=2)
+    print(sched.debug_string())
+    bracket = sched._brackets[0]
+    print(bracket.cutoff({str(i): i for i in range(20)}))

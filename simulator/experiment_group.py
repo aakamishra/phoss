@@ -88,7 +88,8 @@ class ExperimentGroup:
             indices = data[data['training_iteration'] == i]['index'].unique()
             values = true_loss[i, indices]
             best_arm_sum = np.sum(sorted(true_loss[i])[:self.num_actors])
-            avg = (np.sum(values) - (len(values) / self.num_actors) * best_arm_sum) / len(values)
+            avg = (np.sum(values) - (len(values) / self.num_actors)
+                  * best_arm_sum) / len(values)
             avgs.append(avg)
             running_sum += avg
             sums.append(running_sum)
