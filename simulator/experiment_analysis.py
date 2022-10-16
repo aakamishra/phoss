@@ -20,25 +20,15 @@ class ExperimentAnalysis:
         show: bool = False,
         names: List[str] = [],
     ) -> None:
-        plt.title('Cumulative Regret for {}-Workers per Epoch'.format(num_workers))
-        plt.xlabel('Epochs')
-        plt.ylabel('Cumulative per Epoch Instance Regret')
-        for cumulative_regret, cumulative_regret_errors, name in zip(cumulative_regrets, cumulative_regrets_errors, names):
-            cumulative_regret = np.insert(cumulative_regret, 0, 0)
-            cumulative_regret_errors = np.insert(cumulative_regret_errors, 0, 0)
-            plt.plot(list(range(1, len(cumulative_regret)+1)), cumulative_regret, label=name)
-            plt.fill_between(
-                list(range(1, len(cumulative_regret)+1)),
-                cumulative_regret + cumulative_regret_errors,
-                cumulative_regret - cumulative_regret_errors,
-                alpha=0.4,
-                facecolor='blue',
-                linewidth=0
-            )
-        plt.legend()
-        plt.savefig(plot_name)
-        if show:
-            plt.show()
+        ExperimentAnalysis._plot_regrets_margin_of_error(
+            cumulative_regrets,
+            cumulative_regrets_errors,
+            num_workers,
+            'cumulative',
+            plot_name,
+            names=names,
+            show=show
+        )
 
     def _plot_average_regrets(
         average_regrets: List[np.array],
@@ -48,23 +38,54 @@ class ExperimentAnalysis:
         show: bool = False,
         names: List[str] = [],
     ) -> None:
-        plt.title('Average Regret for {}-Workers per Epoch'.format(num_workers))
+        ExperimentAnalysis._plot_regrets_margin_of_error(
+            average_regrets,
+            average_regrets_error,
+            num_workers,
+            'average',
+            plot_name,
+            names=names,
+            show=show
+        )
+
+    def _plot_regrets_margin_of_error(
+        regrets: List[np.array],
+        errors: List[np.array],
+        num_workers: int,
+        regret_type: str,
+        save_as: str,
+        names: List[str] = [],
+        show: bool = False
+    ) -> None:
+        if not regrets or not errors:
+            print('Regret and error matrices must be non-empty!')
+            return
+        if not names:
+            names = ['' for _ in regrets[0]]
+
+        plt.title(
+            '{} Regret for {} Wokers Per Epoch'.format(
+                regret_type.capitalize(), num_workers)
+        )
         plt.xlabel('Epochs')
-        plt.ylabel('Cumulative per Epoch Instance Regret')
-        for average_regret, average_regret_error, name in zip(average_regrets, average_regrets_error, names):
-            average_regret = np.insert(average_regret, 0, 0)
-            average_regret_error = np.insert(average_regret_error, 0, 0)
-            plt.plot(list(range(1, len(average_regret)+1)), average_regret, label=name)
+        plt.ylabel(
+            '{} per Epoch Instance Regret'.format(regret_type.capitalize())
+        )
+        for regret, error, name in zip(regrets, errors, names):
+            regret = np.insert(regret, 0, 0)
+            error = np.insert(error, 0, 0)
+            plt.plot(list(range(1, len(regret)+1)), regret,
+                     label=name if name else None)
             plt.fill_between(
-                list(range(1, len(average_regret)+1)),
-                average_regret + average_regret_error,
-                average_regret - average_regret_error,
+                list(range(1, len(regret)+1)),
+                regret + error,
+                regret - error,
                 alpha=0.4,
                 facecolor='blue',
                 linewidth=0
             )
         plt.legend()
-        plt.savefig(plot_name)
+        plt.savefig(save_as)
         if show:
             plt.show()
 
