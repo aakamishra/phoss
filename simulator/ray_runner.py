@@ -14,29 +14,29 @@ import pandas as pd
 import numpy as np
 
 
-DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
-DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
-SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA"]
+DEFAULT_SIMULATOR_CONFIG = 'simulator_configs/default_config.json'
+DEFAULT_SCHEDULER_CONFIG = 'scheduler_configs/default_config.json'
+SCHEDULER_CONFIG_NAMES = ['ASHA', 'Hyperband', 'PBT', 'PredASHA']
 
 
 class RayRunner:
     def __init__(self,
-                 scheduler_name: str = "ASHA",
+                 scheduler_name: str = 'ASHA',
                  num_samples: int = 16,
                  max_num_epochs: int = 10,
                  gpus_per_trial: int = 1,
                  cpus_per_trial: int = 1,
                  num_actors: int = 1,
                  seed: int = 109,
-                 algo = None,
-                 scheduler_object = None,
+                 algo=None,
+                 scheduler_object=None,
                  simulator_config: str = None,
                  scheduler_config: dict = None,
                  verbose: int = 0):
 
         # search and scheduler objects
         self.scheduler_name = scheduler_name
-        if scheduler_name.lower() == "custom":
+        if scheduler_name.lower() == 'custom':
             assert scheduler_object is not None
             self.scheduler = scheduler_object
         else:
@@ -60,7 +60,7 @@ class RayRunner:
         self.seed = seed
 
         # simulation name and logging information
-        self.simulation_name = f"test-run-n-{self.num_samples}-t-{self.max_num_epochs}-{self.scheduler_name}-seed-{seed}"
+        self.simulation_name = f'test-run-n-{self.num_samples}-t-{self.max_num_epochs}-{self.scheduler_name}-seed-{seed}'
         self.verbose = verbose
 
     def generate_simulation(self) -> True:
@@ -80,10 +80,10 @@ class RayRunner:
             seed=self.seed,
             max_time_steps=self.max_num_epochs,
             samples=self.num_samples,
-            starting_mu_args=simulator_config_dict["STARTING_MU_ARGS"],
-            ending_mu_args=simulator_config_dict["ENDING_MU_ARGS"],
-            starting_std_args=simulator_config_dict["STARTING_STD_ARGS"],
-            ending_std_args=simulator_config_dict["ENDING_STD_ARGS"])
+            starting_mu_args=simulator_config_dict['STARTING_MU_ARGS'],
+            ending_mu_args=simulator_config_dict['ENDING_MU_ARGS'],
+            starting_std_args=simulator_config_dict['STARTING_STD_ARGS'],
+            ending_std_args=simulator_config_dict['ENDING_STD_ARGS'])
 
         self.landscaper.generate_landscape()
 
@@ -101,13 +101,15 @@ class RayRunner:
         ray.init(runtime_env=runtime_env,
                  include_dashboard=False,
                  ignore_reinit_error=True,
-                 _system_config={"num_heartbeats_timeout": 800,
-                                 "object_timeout_milliseconds": 9000000})
+                 _system_config={'num_heartbeats_timeout': 800,
+                                 'object_timeout_milliseconds': 9000000})
 
-
-        search_config = {'sample_array': self.landscaper.simulated_loss,
-                         'index': tune.grid_search(list(range(self.num_samples)))
-                         }
+        search_config = {
+            'sample_array': self.landscaper.simulated_loss,
+            'index': tune.grid_search(
+                list(
+                    range(
+                        self.num_samples)))}
 
         tuner = tune.Tuner(
             tune.with_resources(
@@ -136,4 +138,3 @@ class RayRunner:
 
         results = tuner.fit()
         return results
-
