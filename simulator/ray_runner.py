@@ -20,19 +20,21 @@ SCHEDULER_CONFIG_NAMES = ['ASHA', 'Hyperband', 'PBT', 'PredASHA']
 
 
 class RayRunner:
-    def __init__(self,
-                 scheduler_name: str = 'ASHA',
-                 num_samples: int = 16,
-                 max_num_epochs: int = 10,
-                 gpus_per_trial: int = 1,
-                 cpus_per_trial: int = 1,
-                 num_actors: int = 1,
-                 seed: int = 109,
-                 algo=None,
-                 scheduler_object=None,
-                 simulator_config: str = None,
-                 scheduler_config: dict = None,
-                 verbose: int = 0):
+    def __init__(
+        self,
+        scheduler_name: str = 'ASHA',
+        num_samples: int = 16,
+        max_num_epochs: int = 10,
+        gpus_per_trial: int = 1,
+        cpus_per_trial: int = 1,
+        num_actors: int = 1,
+        seed: int = 109,
+        algo=None,
+        scheduler_object=None,
+        simulator_config: str = None,
+        scheduler_config: dict = None,
+        verbose: int = 0
+    ):
 
         # search and scheduler objects
         self.scheduler_name = scheduler_name
@@ -60,7 +62,8 @@ class RayRunner:
         self.seed = seed
 
         # simulation name and logging information
-        self.simulation_name = f'test-run-n-{self.num_samples}-t-{self.max_num_epochs}-{self.scheduler_name}-seed-{seed}'
+        self.simulation_name = 'test-run-n-{}-t-{}-{}-seed-{}'.format(
+            self.num_samples, self.max_num_epochs, self.scheduler_name, seed)
         self.verbose = verbose
 
     def generate_simulation(self) -> True:
@@ -83,7 +86,8 @@ class RayRunner:
             starting_mu_args=simulator_config_dict['STARTING_MU_ARGS'],
             ending_mu_args=simulator_config_dict['ENDING_MU_ARGS'],
             starting_std_args=simulator_config_dict['STARTING_STD_ARGS'],
-            ending_std_args=simulator_config_dict['ENDING_STD_ARGS'])
+            ending_std_args=simulator_config_dict['ENDING_STD_ARGS']
+        )
 
         self.landscaper.generate_landscape()
 
