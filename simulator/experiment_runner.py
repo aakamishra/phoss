@@ -17,7 +17,7 @@ from ray_runner import RayRunner
 
 DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
 DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
-SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA"]
+SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "Median", "Random", "PredASHA"]
 
 
 class CheckpointObject:

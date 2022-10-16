@@ -2,11 +2,12 @@ import numpy as np
 import pandas as pd
 from typing import Any, List, Optional, Tuple, Union
 from experiment_runner import ExperimentRunner
-
+from itertools import zip_longest
+import pdb
 
 DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
 DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
-SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA"]
+SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA", "Median", "Random"]
 
 
 class ExperimentGroupResults:
@@ -20,6 +21,8 @@ class ExperimentGroupResults:
         avg_mean_regret_err: List[float],
         avg_cumulative_regret: List[float],
         avg_cumulative_regret_err: List[float],
+        moving_loss_avgs: List[float],
+        moving_loss_avgs_errs: List[float],
     ):
         self.scheduler_name = scheduler_name
         self.group_size = group_size
@@ -28,6 +31,8 @@ class ExperimentGroupResults:
         self.avg_cumulative_regret = avg_cumulative_regret
         self.avg_mean_regret_err = avg_mean_regret_err
         self.avg_cumulative_regret_err = avg_cumulative_regret_err
+        self.moving_loss_avgs = moving_loss_avgs
+        self.moving_loss_avgs_errs = moving_loss_avgs_errs
 
 
 class ExperimentGroup:
@@ -92,9 +97,50 @@ class ExperimentGroup:
             sums.append(running_sum)
         return [avgs, sums]
 
+    @staticmethod
+    def _time_processing_column(df, start_time, bin_value=1):
+        df["time_interval"] = ((df['timestamp'] - start_time)/(bin_value)).astype(int)
+        return df
+
+    def _calculate_average_loss_per_worker(self, data_file: str, bin_value=1) -> List[float]:
+        # load in data
+        data = data_file = pd.read_csv(data_file)
+
+        # calculate intial start time and bins
+        start_time = data.timestamp.min()
+        total = data.timestamp.max() - data.timestamp.min()
+
+        # add new time bin column
+        joint_logs = self._time_processing_column(data, start_time, bin_value)
+
+        time_log = joint_logs.groupby(['time_interval', 'trial_id']).min()
+
+        # list to save moving average over time
+        moving_avg, moving_avg_err = [], []
+
+        # find max time amount
+        max_time_interval = max(joint_logs['time_interval'])
+
+        # reset the index to get back the labels for the group by columns
+        reset_time_log = time_log.reset_index()
+        for i in range(0, max_time_interval+1):
+            # for each time interval subset the qualifying configurations
+            subset_array = reset_time_log[reset_time_log["time_interval"] <= i]["loss"].values
+            # sort the values from smallest to largest for the test loss values
+            sorted_subset_array = np.sort(subset_array)
+            # get the average of the top 10 values
+            top_avgs = np.mean(sorted_subset_array[:self.num_actors])
+            top_avgs_err = np.std(sorted_subset_array[:self.num_actors])
+            moving_avg.append(top_avgs)
+            moving_avg_err.append(top_avgs_err)
+        
+        return moving_avg, moving_avg_err
+
+
     # TODO: Make this a common function
     def _average_n_lists(
-        self, lists: List[Union[int, float]]
+        self, lists: List[Union[int, float]],
+            override: bool = False
     ) -> Tuple[List[float], List[float]]:
         if not lists:
             return []
@@ -102,7 +148,7 @@ class ExperimentGroup:
             return lists[0]
         n = len(lists[0])
         for i in range(1, len(lists)):
-            if len(lists[i]) != n:
+            if len(lists[i]) != n or override:
                 print('Lists must have same size!')
                 return []
 
@@ -110,6 +156,17 @@ class ExperimentGroup:
         avgs = np.mean(vals, axis=0)
         std = np.std(vals, axis=0)
         return avgs, std
+
+    @staticmethod
+    def _average_non_matching_lists(lists):
+        l_lens = [len(l) for l in lists]
+        max_len = max(l_lens)
+        bins = np.zeros(max_len)
+        for ln in l_lens:
+            bins = bins + np.array([1]*ln + [0]*(max_len - ln))
+        lists = [l + [0]*(max_len - len(l)) for l in lists]
+        summed = np.sum(lists, axis=0)
+        return summed / bins
 
     def run(self) -> Optional[ExperimentGroupResults]:
         # Run all individual experiments
@@ -143,13 +200,23 @@ class ExperimentGroup:
             # Average individual regrets
             mean_regrets = []
             cumulative_regrets = []
+            moving_loss_avgs = []
+            moving_loss_avgs_errs = []
             for checkpoint in checkpoints:
                 mean_regret, cumulative_regret = self._calculate_regret(
                     checkpoint.true_sim_file, checkpoint.data_file
                 )
+                moving_avg, moving_avg_err = self._calculate_average_loss_per_worker(checkpoint.data_file)
+                moving_loss_avgs.append(moving_avg)
+                moving_loss_avgs_errs.append(moving_avg_err)
+
                 mean_regrets.append(mean_regret)
                 cumulative_regrets.append(cumulative_regret)
+
             avg_mean_regrets, avg_mean_regrets_err = self._average_n_lists(mean_regrets)
+            # TODO Reconcile which error to use (seed error, or value error)
+            moving_loss_avgs = self._average_non_matching_lists(moving_loss_avgs)
+            moving_loss_avgs_errs = self._average_non_matching_lists(moving_loss_avgs_errs)
             print('Mean regrets', avg_mean_regrets)
             avg_cumulative_regrets, avg_cumulative_regrets_err = self._average_n_lists(cumulative_regrets)
             print('Cumlative regrets', avg_cumulative_regrets)
@@ -161,6 +228,8 @@ class ExperimentGroup:
                 avg_mean_regrets_err,
                 avg_cumulative_regrets,
                 avg_cumulative_regrets_err,
+                moving_loss_avgs,
+                moving_loss_avgs_errs
             )
 
 

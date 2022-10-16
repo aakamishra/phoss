@@ -1,4 +1,4 @@
-from ray.tune.schedulers import ASHAScheduler, HyperBandScheduler, PopulationBasedTraining, TrialScheduler
+from ray.tune.schedulers import ASHAScheduler, HyperBandScheduler, PopulationBasedTraining, TrialScheduler, MedianStoppingRule, FIFOScheduler
 
 import logging
 from typing import Dict, Optional, Union, List
@@ -149,4 +149,19 @@ class Scheduler:
             return HyperBandScheduler(max_t=max_num_epochs, 
                                     time_attr="training_iteration", 
                                     reduction_factor=reduction_factor)
+
+        elif self.scheduler_name == "Median":
+            print("using Median Rule")
+            max_num_epochs = self.scheduler_config.get("max_t", 100)
+            return MedianStoppingRule(time_attr= 'training_iterations',
+                                    grace_period=0, 
+                                    min_samples_required=2)
+        
+        elif self.scheduler_name == "PBT":
+            print("using Population-based Training")
+            max_num_epochs = self.scheduler_config.get("max_t", 100)
+            return PopulationBasedTraining(perturbation_interval = max_num_epochs//5, burn_in_period=0)
+        else:
+            print("running Random Configurations")
+            return FIFOScheduler()
 

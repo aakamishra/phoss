@@ -30,7 +30,7 @@ class ExperimentAnalysis:
                 list(range(1, len(cumulative_regret)+1)),
                 cumulative_regret + cumulative_regret_errors,
                 cumulative_regret - cumulative_regret_errors,
-                alpha=0.4,
+                alpha=0.2,
                 facecolor='blue',
                 linewidth=0
             )
@@ -58,7 +58,33 @@ class ExperimentAnalysis:
                 list(range(1, len(average_regret)+1)),
                 average_regret + average_regret_error,
                 average_regret - average_regret_error,
-                alpha=0.4,
+                alpha=0.2,
+                facecolor='blue',
+                linewidth=0
+            )
+        plt.legend()
+        plt.savefig(plot_name)
+        if show:
+            plt.show()
+
+    def _plot_average_moving_loss(
+        average_moving_loss: List[np.array],
+        average_moving_loss_error: List[np.array],
+        num_workers: int,
+        plot_name: str,
+        show: bool = False,
+        names: List[str] = [],
+    ) -> None:
+        plt.title('Top {} Averaged Moving Loss over Time'.format(num_workers))
+        plt.xlabel('Time Bins')
+        plt.ylabel('Averaged Loss')
+        for average, error, name in zip(average_moving_loss, average_moving_loss_error, names):
+            plt.plot(list(range(1, len(average)+1)), average, label=name)
+            plt.fill_between(
+                list(range(1, len(average)+1)),
+                average + error,
+                average - error,
+                alpha=0.2,
                 facecolor='blue',
                 linewidth=0
             )
@@ -71,11 +97,12 @@ class ExperimentAnalysis:
         regrets = [result.avg_cumulative_regret for result in results]
         errors = [result.avg_cumulative_regret_err for result in results]
         names = [result.scheduler_name for result in results]
+
         ExperimentAnalysis._plot_cumulative_regrets(
             regrets,
             errors,
             results[0].num_workers,
-            'Cumulative Regrets',
+            'Cumulative_Regrets',
             show=True,
             names=names,
         )
@@ -85,7 +112,18 @@ class ExperimentAnalysis:
             regrets,
             errors,
             results[0].num_workers,
-            'Average Regrets',
+            'Average_Regrets',
+            show=True,
+            names=names,
+        )
+
+        averages = [result.moving_loss_avgs for result in results]
+        errors = [result.moving_loss_avgs_errs for result in results]
+        ExperimentAnalysis._plot_average_moving_loss(
+            averages,
+            errors,
+            results[0].num_workers,
+            'Average_Moving_Loss',
             show=True,
             names=names,
         )
