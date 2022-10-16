@@ -15,11 +15,13 @@ class ExperimentGroupResults:
         self,
         scheduler_name: str,
         group_size: int,
+        num_workers: int,
         avg_mean_regret: List[float],
         avg_cumulative_regret: List[float],
     ):
         self.scheduler_name = scheduler_name
         self.group_size = group_size
+        self.num_workers = num_workers
         self.avg_mean_regret = avg_mean_regret
         self.avg_cumulative_regret = avg_cumulative_regret
 
@@ -88,8 +90,10 @@ class ExperimentGroup:
 
     # TODO: Make this a common function
     def _average_n_lists(self, lists: List[Union[int, float]]) -> List[float]:
-        if len(lists) < 2:
-            return lists
+        if not lists:
+            return []
+        elif len(lists) == 1:
+            return lists[0]
         n = len(lists[0])
         averages = []
         for i in range(1, len(lists)):
@@ -147,8 +151,9 @@ class ExperimentGroup:
             avg_cumulative_regrets = self._average_n_lists(cumulative_regrets)
             print('Cumlative regrets', avg_cumulative_regrets)
             return ExperimentGroupResults(
-                self.scheduler_name,
+                self.scheduler_name, #TODO: Give option to pass in different name
                 len(checkpoints),
+                self.num_actors,
                 avg_mean_regrets,
                 avg_cumulative_regrets
             )
