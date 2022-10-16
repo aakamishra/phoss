@@ -17,13 +17,17 @@ class ExperimentGroupResults:
         group_size: int,
         num_workers: int,
         avg_mean_regret: List[float],
+        avg_mean_regret_err: List[float],
         avg_cumulative_regret: List[float],
+        avg_cumulative_regret_err: List[float],
     ):
         self.scheduler_name = scheduler_name
         self.group_size = group_size
         self.num_workers = num_workers
         self.avg_mean_regret = avg_mean_regret
         self.avg_cumulative_regret = avg_cumulative_regret
+        self.avg_mean_regret_err = avg_mean_regret_err
+        self.avg_cumulative_regret_err = avg_cumulative_regret_err
 
 
 class ExperimentGroup:
@@ -89,24 +93,23 @@ class ExperimentGroup:
         return [avgs, sums]
 
     # TODO: Make this a common function
-    def _average_n_lists(self, lists: List[Union[int, float]]) -> List[float]:
+    def _average_n_lists(
+        self, lists: List[Union[int, float]]
+    ) -> Tuple[List[float], List[float]]:
         if not lists:
             return []
         elif len(lists) == 1:
             return lists[0]
         n = len(lists[0])
-        averages = []
         for i in range(1, len(lists)):
             if len(lists[i]) != n:
                 print('Lists must have same size!')
                 return []
 
-        for i in range(n):
-            sublst = []
-            for lst in lists:
-                sublst.append(lst[i])
-            averages.append(sum(sublst) / len(sublst))
-        return averages
+        vals = np.array(lists)
+        avgs = np.mean(vals, axis=0)
+        std = np.std(vals, axis=0)
+        return avgs, std
 
     def run(self) -> Optional[ExperimentGroupResults]:
         # Run all individual experiments
@@ -146,16 +149,18 @@ class ExperimentGroup:
                 )
                 mean_regrets.append(mean_regret)
                 cumulative_regrets.append(cumulative_regret)
-            avg_mean_regrets = self._average_n_lists(mean_regrets)
+            avg_mean_regrets, avg_mean_regrets_err = self._average_n_lists(mean_regrets)
             print('Mean regrets', avg_mean_regrets)
-            avg_cumulative_regrets = self._average_n_lists(cumulative_regrets)
+            avg_cumulative_regrets, avg_cumulative_regrets_err = self._average_n_lists(cumulative_regrets)
             print('Cumlative regrets', avg_cumulative_regrets)
             return ExperimentGroupResults(
                 self.scheduler_name, #TODO: Give option to pass in different name
                 len(checkpoints),
                 self.num_actors,
                 avg_mean_regrets,
-                avg_cumulative_regrets
+                avg_mean_regrets_err,
+                avg_cumulative_regrets,
+                avg_cumulative_regrets_err,
             )
 
 
