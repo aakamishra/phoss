@@ -11,6 +11,7 @@ SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA", "Median", "Ran
 
 
 class ExperimentGroupResults:
+    """Wrapper class for ExperimentGroup combined results"""
 
     def __init__(
         self,
@@ -36,6 +37,7 @@ class ExperimentGroupResults:
 
 
 class ExperimentGroup:
+    """Defines a group of 1-N experiments, varied by random seed"""
 
     def __init__(
         self,

@@ -21,6 +21,7 @@ SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "Median", "Random", "PredA
 
 
 class CheckpointObject:
+    """Wrapper class for the return object from running an experiment"""
 
     def __init__(
         self,
@@ -41,18 +42,18 @@ class CheckpointObject:
         self.data_file = data_file
         self.num_samples = num_samples
 
-    def persist_json(self, filename: str):
+    def persist_json(self, filename: str) -> None:
         with open(filename, 'w') as fp:
             json.dump(
                 {
-                    "num_actors": self.num_actors,
-                    "max_num_epochs": self.max_num_epochs,
-                    "scheduler_name": self.scheduler_name,
-                    "gen_sim_file": self.gen_sim_file,
-                    "true_sim_file": self.true_sim_file,
-                    "simulation_name": self.simulation_name,
-                    "data_file": self.data_file,
-                    "num_samples": self.num_samples,
+                    'num_actors': self.num_actors,
+                    'max_num_epochs': self.max_num_epochs,
+                    'scheduler_name': self.scheduler_name,
+                    'gen_sim_file': self.gen_sim_file,
+                    'true_sim_file': self.true_sim_file,
+                    'simulation_name': self.simulation_name,
+                    'data_file': self.data_file,
+                    'num_samples': self.num_samples,
                 },
                 fp,
                 indent=4
@@ -60,6 +61,7 @@ class CheckpointObject:
 
 
 class ExperimentRunner:
+    """Methods to run a single experiment"""
 
     def call_simulator(
         sched_name: str,
@@ -69,7 +71,7 @@ class ExperimentRunner:
         cpus_per_trial: int = 1,
         num_actors: int = 4,
         seed: int = 109,
-        scheduler_object = None,
+        scheduler_object=None,
         simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
@@ -78,9 +80,9 @@ class ExperimentRunner:
         """
         Public function to be called as an API endpoint.
         """
-        if sched_name.lower() == "custom":
+        if sched_name.lower() == 'custom':
             if not scheduler_object:
-                print("Custom scheduler object not provided!")
+                print('Custom scheduler object not provided!')
                 return None
             return ExperimentRunner._call_custom_simulator(
                 scheduler_object,
@@ -91,11 +93,12 @@ class ExperimentRunner:
                 num_actors=num_actors,
                 seed=seed,
                 verbose=verbose,
-                save_dir=save_dir)
+                save_dir=save_dir
+            )
         else:
             if sched_name not in SCHEDULER_CONFIG_NAMES:
-                print("Could not find sched_name {} in \
-                    SCHEDULER_CONFIG_NAMES".format(sched_name))
+                print('Could not find sched_name {} in \
+                    SCHEDULER_CONFIG_NAMES'.format(sched_name))
                 return None
             return ExperimentRunner._call_common_simulator(
                 sched_name,
@@ -108,7 +111,8 @@ class ExperimentRunner:
                 simulator_config=simulator_config,
                 scheduler_config=scheduler_config,
                 verbose=verbose,
-                save_dir=save_dir)
+                save_dir=save_dir
+            )
 
     def _call_common_simulator(
         sched_name: str,
@@ -130,13 +134,13 @@ class ExperimentRunner:
         """
         # loading scheduler config
         if verbose:
-            print("Loading config file for scheduler: ", scheduler_config)
+            print('Loading config file for scheduler: ', scheduler_config)
         with open(scheduler_config, encoding='utf-8') as f:
             scheduler_config = json.load(f)
         scheduler_config['max_t'] = max_num_epochs
 
         if verbose:
-            print("Initializing Ray Runner")
+            print('Initializing Ray Runner')
         runner = RayRunner(
             num_samples=num_samples,
             num_actors=num_actors,
@@ -146,9 +150,10 @@ class ExperimentRunner:
             scheduler_config=scheduler_config,
             max_num_epochs=max_num_epochs,
             scheduler_name=sched_name,
-            seed=seed)
+            seed=seed
+        )
         return ExperimentRunner._run_simulation(runner, verbose=verbose,
-                                            save_dir=save_dir)
+                                                save_dir=save_dir)
 
     def _call_custom_simulator(
         scheduler,
@@ -167,13 +172,13 @@ class ExperimentRunner:
         """
         # loading scheduler config
         if verbose:
-            print("Loading config file for scheduler: ", scheduler_config)
+            print('Loading config file for scheduler: ', scheduler_config)
         with open(scheduler_config, encoding='utf-8') as f:
             scheduler_config = json.load(f)
         scheduler_config['max_t'] = max_num_epochs
 
         if verbose:
-            print("Initializing Ray Runner")
+            print('Initializing Ray Runner')
         runner = RayRunner(
             num_samples=num_samples,
             num_actors=num_actors,
@@ -181,10 +186,11 @@ class ExperimentRunner:
             gpus_per_trial=gpus_per_trial,
             scheduler_object=scheduler,
             max_num_epochs=max_num_epochs,
-            scheduler_name="custom",
-            seed=seed)
+            scheduler_name='custom',
+            seed=seed
+        )
         return ExperimentRunner._run_simulation(runner, verbose=verbose,
-                                            save_dir=save_dir)
+                                                save_dir=save_dir)
 
     def _run_simulation(
         runner: RayRunner, verbose: bool = 0, save_dir: str = ''
@@ -193,30 +199,37 @@ class ExperimentRunner:
         Runs the simulator given a RayRunner instance and saves the results as a
         set of CSV files.
         """
-        if verbose: print("Generating loss simulation")
+        if verbose:
+            print('Generating loss simulation')
         runner.generate_simulation()
 
-        if verbose: print("Running Ray Tune Program")
+        if verbose:
+            print('Running Ray Tune Program')
         timestamp = datetime.now()
         results = runner.run()
 
-        if verbose: print("Moving data to checkpoint csv")
+        if verbose:
+            print('Moving data to checkpoint csv')
         dfs = {result.log_dir: result.metrics_dataframe for result in results}
         data = pd.concat(dfs.values(), ignore_index=True)
         ray.shutdown()
         path = os.path.join(os.getcwd(), save_dir) if save_dir else os.getcwd()
-        print("Saving results at", path)
+        print('Saving results at', path)
         if not os.path.exists(path):
             os.mkdir(path)
         true_sim_path = os.path.join(path,
-                                     runner.simulation_name + "-true-sim.csv")
+                                     runner.simulation_name + '-true-sim.csv')
         gen_sim_path = os.path.join(path,
-                                    runner.simulation_name + "-gen-sim.csv")
-        np.savetxt(true_sim_path, runner.landscaper.true_loss, delimiter=",")
-        np.savetxt(gen_sim_path, runner.landscaper.simulated_loss, delimiter=",")
+                                    runner.simulation_name + '-gen-sim.csv')
+        np.savetxt(true_sim_path, runner.landscaper.true_loss, delimiter=',')
+        np.savetxt(
+            gen_sim_path,
+            runner.landscaper.simulated_loss,
+            delimiter=','
+        )
 
         # move total data to csv
-        data_path = os.path.join(path, runner.simulation_name + "-data.csv")
+        data_path = os.path.join(path, runner.simulation_name + '-data.csv')
         data.to_csv(data_path)
 
         # perform checkpointing
@@ -228,19 +241,20 @@ class ExperimentRunner:
             true_sim_path,
             runner.simulation_name,
             data_path,
-            runner.num_samples)
-        serialized_timestamp = timestamp.strftime("%Y-%m-%d-%H-%M-%S")
+            runner.num_samples
+        )
+        serialized_timestamp = timestamp.strftime('%Y-%m-%d-%H-%M-%S')
         fcheckpoint = os.path.join(
-            path, "checkpoint-{}.json".format(serialized_timestamp))
+            path, 'checkpoint-{}.json'.format(serialized_timestamp))
         checkpoint.persist_json(fcheckpoint)
 
-        print("Finished")
+        print('Finished')
         return checkpoint
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('sched_name', type=str, default="ASHA")
+    parser.add_argument('sched_name', type=str, default='ASHA')
     parser.add_argument('--num-samples', type=int, default=100)
     parser.add_argument('--max-num-epochs', type=int, default=100)
     parser.add_argument('--gpus-per-trial', type=int, default=0)
@@ -260,7 +274,7 @@ if __name__ == "__main__":
 
     try:
         if args.verbose:
-            print("Starting main program...")
+            print('Starting main program...')
         ExperimentRunner.call_simulator(
             args.sched_name,
             num_samples=args.num_samples,
@@ -272,6 +286,7 @@ if __name__ == "__main__":
             scheduler_config=args.scheduler_config,
             seed=args.seed,
             verbose=args.verbose,
-            save_dir=args.save)
+            save_dir=args.save
+        )
     except Exception as e:
         print(e)
