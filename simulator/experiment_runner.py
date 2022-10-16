@@ -21,6 +21,7 @@ SCHEDULER_CONFIG_NAMES = ['ASHA', 'Hyperband', 'PBT', 'PredASHA']
 
 
 class CheckpointObject:
+    """Wrapper class for the return object from running an experiment"""
 
     def __init__(
         self,
@@ -41,7 +42,7 @@ class CheckpointObject:
         self.data_file = data_file
         self.num_samples = num_samples
 
-    def persist_json(self, filename: str):
+    def persist_json(self, filename: str) -> None:
         with open(filename, 'w') as fp:
             json.dump(
                 {
@@ -60,6 +61,7 @@ class CheckpointObject:
 
 
 class ExperimentRunner:
+    """Methods to run a single experiment"""
 
     def call_simulator(
         sched_name: str,

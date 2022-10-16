@@ -10,6 +10,7 @@ from experiment_group import ExperimentGroupResults
 
 # TODO: Combine a lot of functions with ExperimentVisualizer class
 class ExperimentAnalysis:
+    """Methods to plot and analyze results from an ExperimentGroup"""
 
     def _plot_cumulative_regrets(
         cumulative_regrets: List[List[float]],
