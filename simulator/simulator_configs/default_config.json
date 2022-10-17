@@ -1,13 +1,18 @@
-{"STARTING_MU_ARGS":
-    {"mu": 1.0, 
-    "std": 0.1},
- "ENDING_MU_ARGS":
-    {"mu": 0.3, 
-    "std": 0.05},
- "STARTING_STD_ARGS":
-    {"mu": 0.02, 
-    "std": 0.005},
- "ENDING_STD_ARGS":
-    {"mu": 0.0001, 
-    "std": 0.00005}
+{
+    "beta0": 0.95,
+    "b0std": 0.05,
+    "std_start": {"mu": 0.01, "std": 0.005},
+    "std_end": {"mu": 0.001, "std": 0.0005},
+    "config_list": [
+        {
+            "beta1": -1,
+            "beta2": 0,
+            "beta3": 1,
+            "alpha": -0.35,
+            "b1std": 1e-3,
+            "b2std": 0,
+            "b3std": 1e-3,
+            "alphastd":1e-3
+        }
+    ]
 }

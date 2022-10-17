@@ -1,0 +1,13 @@
+{"STARTING_MU_ARGS":
+    {"mu": 1.0, 
+    "std": 0.1},
+ "ENDING_MU_ARGS":
+    {"mu": 0.3, 
+    "std": 0.05},
+ "STARTING_STD_ARGS":
+    {"mu": 0.02, 
+    "std": 0.005},
+ "ENDING_STD_ARGS":
+    {"mu": 0.0001, 
+    "std": 0.00005}
+}

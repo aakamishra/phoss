@@ -1,5 +1,5 @@
 from ray import tune
-
+import numpy as np
 
 class SimulatedTrainable(tune.Trainable):
     """Class for simulating a PyTorch Lightning Module trainable"""
@@ -17,7 +17,9 @@ class SimulatedTrainable(tune.Trainable):
         None
         """
         self.index = config.get("index", 0)
-        self.values = config.get('sample_array', [])
+
+        self.file = config.get('gen_sim_path', '')
+        self.values = np.genfromtxt(self.file, delimiter=',')
         self.series = self.values[:,self.index]
         self.internal_training_iteration = 0
         self.verbose = config.get("verbose", False)

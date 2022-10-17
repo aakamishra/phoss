@@ -1,14 +1,14 @@
 from experiment_analysis import ExperimentAnalysis
 from experiment_group import ExperimentGroup
 
-seeds = [90, 100, 110, 120, 130]
-methods = ["Random", "PBT", "ASHA", "Hyperband"]
+seeds = [90, 100, 110]
+methods = ["Median", "ASHA"]
 results = []
 exp_groups = []
 save_dir = "checkpoints"
-num_workers = 8
-num_samples = 30
-max_num_epochs = 50
+num_workers = 16
+num_samples = 100
+max_num_epochs = 100
 
 for method in methods:
     egroup = ExperimentGroup(method, 
@@ -17,7 +17,8 @@ for method in methods:
                             max_num_epochs=max_num_epochs,
                             num_actors=num_workers,
                             num_samples=num_samples,
-                            save_dir="checkpoints")
+                            save_dir="checkpoints",
+                            verbose=3)
     result = egroup.run()
     exp_groups.append(egroup)
     results.append(result)

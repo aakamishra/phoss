@@ -164,12 +164,15 @@ class Scheduler:
             max_num_epochs = self.scheduler_config.get("max_t", 100)
             return MedianStoppingRule(time_attr= 'training_iterations',
                                     grace_period=0, 
-                                    min_samples_required=2)
+                                    min_samples_required=10,
+                                    )
         
         elif self.scheduler_name == "PBT":
             print("using Population-based Training")
             max_num_epochs = self.scheduler_config.get("max_t", 100)
-            return PopulationBasedTraining(perturbation_interval = max_num_epochs//5, burn_in_period=0)
+            return PopulationBasedTraining(
+                        perturbation_interval = 0, 
+                        )
         else:
             print("running Random Configurations")
             return FIFOScheduler()

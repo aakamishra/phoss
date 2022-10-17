@@ -1,32 +1,97 @@
+from contextlib import nullcontext
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from typing import Callable
 import matplotlib
 matplotlib.use('TkAgg')
+import json
+import copy
+import pdb
 
-DEFAULT_STARTING_MU_ARGS = {"mu": 1.0, "std": 0.1}
-DEFAULT_ENDING_MU_ARGS = {"mu": 0.3, "std": 0.05}
 DEFAULT_STARTING_STD_ARGS = {"mu": 0.02, "std": 0.005}
 DEFAULT_ENDING_STD_ARGS = {"mu": 0.001, "std": 0.005}
+
+class ParametricConfig:
+    def __init__(self, beta1, b1std, beta2, b2std, beta3, b3std, alpha, alphastd):
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.beta3 = beta3
+        self.alpha = alpha
+        self.b1std = b1std
+        self.b2std = b2std
+        self.b3std = b3std
+        self.alphastd = alphastd
+    
+    @staticmethod
+    def read_from_dict(values: dict):
+        beta1 = values.get("beta1", 0)
+        beta2 = values.get("beta2", 0)
+        beta3 = values.get("beta3", 0)
+
+        b1std = values.get("b1std", 0)
+        b2std = values.get("b2std", 0)
+        b3std = values.get("b3std", 0)
+
+        alpha = values.get("alpha", 0)
+        alphastd = values.get("alphastd", 0)
+
+        return ParametricConfig(beta1, b1std, beta2, b2std, beta3, b3std, alpha, alphastd)
+
+class ParameticLossCurve:
+    def __init__(self, json_name=None, num_samples=10, beta0=0, b0std=0.01, config_list=[]):
+        self.beta0 = beta0
+        self.b0std = b0std
+        self.config_list = config_list
+        self.num_samples = num_samples
+        self.std_start = DEFAULT_STARTING_STD_ARGS
+        self.std_end = DEFAULT_ENDING_STD_ARGS
+
+
+        if len(config_list) == 0 and json_name == None:
+            raise AttributeError("Invalid Arguments Provided")
+
+        elif len(config_list) == 0:
+            with open(json_name, encoding="utf-8") as f:
+                configs = json.load(f)
+                self.beta0 = configs["beta0"]
+                self.b0std = configs["b0std"]
+                self.std_start = configs["std_start"]
+                self.std_end = configs["std_end"]
+                dict_config_list = configs["config_list"] 
+                for cf in dict_config_list:
+                    self.config_list.append(ParametricConfig.read_from_dict(cf))
+
+        self.random_sample_config_list = []
+        for config in self.config_list:
+            rn_cf = {}
+            rn_cf['beta1'] = np.random.normal(loc=config.beta1, scale=config.b1std, size=num_samples)
+            rn_cf['beta2'] = np.random.normal(loc=config.beta2, scale=config.b2std, size=num_samples)
+            rn_cf['beta3'] = np.random.normal(loc=config.beta3, scale=config.b3std, size=num_samples)
+            alpha_array = np.random.normal(loc=config.alpha, scale=config.alphastd, size=num_samples)
+            np.clip(alpha_array, config.alpha - config.alphastd, config.alpha + config.alphastd, out=alpha_array)
+            rn_cf['alpha'] = alpha_array
+            self.random_sample_config_list.append(rn_cf)
+        self.beta0_list = np.random.normal(loc=self.beta0, scale=self.b0std, size=self.num_samples)
+
+    
+    def generate_curve_means(self, time):
+
+        total = copy.deepcopy(self.beta0_list)
+        time = np.array([time])
+        time_series = np.repeat(time, self.num_samples, axis=0)
+        for config in self.random_sample_config_list:
+            total += config['beta1'] / ( np.float_power(time_series + config['beta2'], config['alpha']) + config['beta3'])
+        return total
 
 
 class NormalLossDecayLandscape:
     def __init__(self, 
+                json_config,
                 max_time_steps: int = 100,
                 samples: int = 50,
-                starting_mu_args: dict = DEFAULT_STARTING_MU_ARGS,
-                starting_mu_dist: Callable = np.random.normal,
-                ending_mu_args: dict = DEFAULT_ENDING_MU_ARGS,
-                ending_mu_dist: Callable = np.random.normal,
-                starting_std_args: dict = DEFAULT_STARTING_STD_ARGS,
-                starting_std_dist: Callable = np.random.normal,
-                ending_std_args: dict = DEFAULT_ENDING_STD_ARGS,
-                ending_std_dist: Callable = np.random.normal,
-                noise_dist: Callable = np.random.normal,
                 seed: int = 109,
                 absolute: bool = True,
-                loss_curve_shape: str = "expo",
                 std_curve_shape: str = "linear",):
 
         # set random seed for experiment replicability
@@ -35,36 +100,21 @@ class NormalLossDecayLandscape:
 
         # store instance values
         self.absolute = absolute
-        self.loss_curve_shape = loss_curve_shape
         self.samples = samples
         self.max_time_steps = max_time_steps
-        self.noise_dist = noise_dist
+        self.std_curve_shape = std_curve_shape
+        self.parametric_curve = ParameticLossCurve(json_name=json_config, num_samples=samples)
         self.simulated_loss = []
         self.true_loss = []
 
-        # generate list of starting mean sample values
-        self.starting_mu_list = self._assign_normal_values(starting_mu_args,
-                                                           samples,
-                                                           starting_mu_dist,
-                                                           absolute=absolute)
-
-        # generate list of ending mean sample values
-        self.ending_mu_list = self._assign_normal_values(ending_mu_args,
-                                                         samples,
-                                                         ending_mu_dist,
-                                                         absolute=absolute)
 
         # generate list of standard deviations for each loss timeseries
         self.std_starting_list = self._assign_normal_values(
-            starting_std_args, samples, starting_std_dist, absolute=True)
+            self.parametric_curve.std_start, samples, absolute=True)
 
         self.std_ending_list = self._assign_normal_values(
-            ending_std_args, samples, ending_std_dist, absolute=True)
+            self.parametric_curve.std_end, samples, absolute=True)
 
-        self.loss_slopes = self._gen_loss_slope(self.starting_mu_list,
-                                                self.ending_mu_list,
-                                                max_time_steps,
-                                                slope_type=loss_curve_shape)
         
         self.std_slopes = self._gen_loss_slope(self.std_starting_list, 
                                                 self.std_ending_list,
@@ -72,13 +122,13 @@ class NormalLossDecayLandscape:
                                                 slope_type=std_curve_shape)
 
     def _assign_normal_values(
-            self, config: dict, samples: int, dist: Callable, absolute=True) -> np.array:
+            self, config: dict, samples: int, absolute=True) -> np.array:
         # generate list of values based on given config
         if self._check_normal_config(config) < 0:
             return -1
         mu = config["mu"]
         std = config["std"]
-        generated_values = dist(mu, std, samples)
+        generated_values = np.random.normal(mu, std, samples)
 
         # take absolute value if specified
         if absolute:
@@ -116,44 +166,44 @@ class NormalLossDecayLandscape:
 
     def generate_landscape(self):
 
+        lower_bound = 0
+        upper_bound = 1
         simulated_loss = []
         true_loss = []
 
         for time_step in range(self.max_time_steps):
-            cur_loss_mu_values = self._get_mean_per_time_step(
-                    self.starting_mu_list, 
-                    self.loss_slopes,
-                    time_step=time_step,
-                    slope_type=self.loss_curve_shape)
+            cur_loss_mu_values = self.parametric_curve.generate_curve_means(time_step)
 
             cur_std_values = self._get_mean_per_time_step(
                     self.std_starting_list, 
                     self.std_slopes,
                     time_step=time_step,
-                    slope_type=self.loss_curve_shape)
+                    slope_type=self.std_curve_shape)
                     
             true_loss.append(cur_loss_mu_values)
+            
             simulated_loss.append(
-                np.absolute(
-                    self.noise_dist(
+                    np.random.normal(
                         cur_loss_mu_values,
-                        cur_std_values)))
+                        cur_std_values))
 
         self.simulated_loss = np.array(simulated_loss)
+        np.clip(self.simulated_loss, lower_bound, upper_bound, out=self.simulated_loss)
         self.true_loss = np.array(true_loss)
+        np.clip(self.true_loss, lower_bound, upper_bound, out=self.true_loss)
         return self.simulated_loss
 
 
 if __name__ == "__main__":
     max_time_steps = 100
     print("Debugging Landscaper")
-    landscaper = NormalLossDecayLandscape(
-        max_time_steps=max_time_steps, samples=10)
+    
+    landscaper = NormalLossDecayLandscape("simulator_configs/overfit.json", max_time_steps=max_time_steps, samples=100)
     sim_loss = landscaper.generate_landscape()
     time_range = np.arange(0, max_time_steps)
     print(sim_loss[:,0])
     plt.plot(time_range, sim_loss, alpha=0.1, color="blue")
-    plt.plot(time_range, landscaper.true_loss, alpha=0.2, color="red")
+    plt.plot(time_range, landscaper.true_loss, alpha=0.1, color="red")
     plt.show()
 
     sns.heatmap(sim_loss)

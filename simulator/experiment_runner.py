@@ -203,6 +203,23 @@ class ExperimentRunner:
             print('Generating loss simulation')
         runner.generate_simulation()
 
+        path = os.path.join(os.getcwd(), save_dir) if save_dir else os.getcwd()
+        print('Saving results at', path)
+        if not os.path.exists(path):
+            os.mkdir(path)
+        
+        true_sim_path = os.path.join(path,
+                                     runner.simulation_name + '-true-sim.csv')
+        gen_sim_path = os.path.join(path,
+                                    runner.simulation_name + '-gen-sim.csv')
+        runner.gen_sim_path = gen_sim_path
+        np.savetxt(true_sim_path, runner.landscaper.true_loss, delimiter=',')
+        np.savetxt(
+            gen_sim_path,
+            runner.landscaper.simulated_loss,
+            delimiter=','
+        )
+
         if verbose:
             print('Running Ray Tune Program')
         timestamp = datetime.now()
@@ -213,22 +230,9 @@ class ExperimentRunner:
         dfs = {result.log_dir: result.metrics_dataframe for result in results}
         data = pd.concat(dfs.values(), ignore_index=True)
         ray.shutdown()
-        path = os.path.join(os.getcwd(), save_dir) if save_dir else os.getcwd()
-        print('Saving results at', path)
-        if not os.path.exists(path):
-            os.mkdir(path)
-        true_sim_path = os.path.join(path,
-                                     runner.simulation_name + '-true-sim.csv')
-        gen_sim_path = os.path.join(path,
-                                    runner.simulation_name + '-gen-sim.csv')
-        np.savetxt(true_sim_path, runner.landscaper.true_loss, delimiter=',')
-        np.savetxt(
-            gen_sim_path,
-            runner.landscaper.simulated_loss,
-            delimiter=','
-        )
 
         # move total data to csv
+        if verbose: print("saving trial results")
         data_path = os.path.join(path, runner.simulation_name + '-data.csv')
         data.to_csv(data_path)
 

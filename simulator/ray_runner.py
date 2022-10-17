@@ -31,7 +31,7 @@ class RayRunner:
         seed: int = 109,
         algo=None,
         scheduler_object=None,
-        simulator_config: str = None,
+        simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: dict = None,
         verbose: int = 0
     ):
@@ -57,6 +57,7 @@ class RayRunner:
         self.max_num_epochs = max_num_epochs
         self.num_actors = num_actors
         self.num_samples = num_samples
+        self.gen_sim_path = ""
 
         # randomness
         self.seed = seed
@@ -69,24 +70,12 @@ class RayRunner:
     def generate_simulation(self) -> True:
         """Function for generated the loss landscape for training on"""
 
-        # load the simulator configuration files enumerating the distribution
-        simulator_config_dict = {}
-        if self.simulator_config:
-            with open(self.simulator_config, encoding='utf-8') as f:
-                simulator_config_dict = json.load(f)
-        else:
-            with open(DEFAULT_SIMULATOR_CONFIG, encoding='utf-8') as f:
-                simulator_config_dict = json.load(f)
-
         # create normal landscape
         self.landscaper = NormalLossDecayLandscape(
             seed=self.seed,
             max_time_steps=self.max_num_epochs,
             samples=self.num_samples,
-            starting_mu_args=simulator_config_dict['STARTING_MU_ARGS'],
-            ending_mu_args=simulator_config_dict['ENDING_MU_ARGS'],
-            starting_std_args=simulator_config_dict['STARTING_STD_ARGS'],
-            ending_std_args=simulator_config_dict['ENDING_STD_ARGS']
+            json_config=self.simulator_config,
         )
 
         self.landscaper.generate_landscape()
@@ -108,8 +97,10 @@ class RayRunner:
                  _system_config={'num_heartbeats_timeout': 800,
                                  'object_timeout_milliseconds': 9000000})
 
+
+        print("passing path: ",  self.gen_sim_path)
         search_config = {
-            'sample_array': self.landscaper.simulated_loss,
+            'gen_sim_path': self.gen_sim_path,
             'index': tune.grid_search(
                 list(
                     range(

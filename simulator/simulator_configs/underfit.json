@@ -1,0 +1,18 @@
+{
+    "beta0": 0.9,
+    "b0std": 0.05,
+    "std_start": {"mu": 0.01, "std": 0.005},
+    "std_end": {"mu": 0.001, "std": 0.0005},
+    "config_list": [
+        {
+            "beta1": -0.000001,
+            "beta2": 2,
+            "beta3": 0,
+            "alpha": -2.85,
+            "b1std": 1e-8,
+            "b2std": 0.1,
+            "b3std": 0,
+            "alphastd":0.1
+        }
+    ]
+}
