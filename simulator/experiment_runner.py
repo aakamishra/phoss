@@ -266,11 +266,9 @@ if __name__ == '__main__':
     parser.add_argument('--num-actors', type=int, default=8)
     parser.add_argument('--seed', type=int, default=109)
     parser.add_argument('--verbose', type=int, default=0)
-    parser.add_argument('--simulator-config',
-                        type=str,
+    parser.add_argument('--simulator-config', type=str,
                         default=DEFAULT_SIMULATOR_CONFIG)
-    parser.add_argument('--scheduler-config',
-                        type=str,
+    parser.add_argument('--scheduler-config', type=str,
                         default=DEFAULT_SCHEDULER_CONFIG)
     parser.add_argument('--save', type=str, default='')
 

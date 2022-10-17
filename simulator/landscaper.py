@@ -136,31 +136,32 @@ class NormalLossDecayLandscape:
 
         return generated_values
 
-    def _gen_loss_slope(self, y1, y2, x_range, slope_type="expo"):
-        if slope_type == "expo":
+    def _gen_loss_slope(self, y1, y2, x_range, slope_type='expo'):
+        if slope_type == 'expo':
             lambdas = (np.log(y1) - np.log(y2)) / x_range
 
-        elif slope_type == "linear":
+        elif slope_type == 'linear':
             lambdas = (y2 - y1) / x_range
         return lambdas
 
     def _check_normal_config(self, config: dict) -> int:
         # generate list of starting mean sample values
-        if "mu" not in config:
-            raise KeyError("mu not provided in config")
-            return -1
-
-        if "std" not in config:
-            raise KeyError("std not provided in config")
-            return -1
-
+        if 'mu' not in config:
+            raise KeyError('mu not provided in config')
+        if 'std' not in config:
+            raise KeyError('std not provided in config')
         return 0
 
-    def _get_mean_per_time_step(self, starting, slopes, time_step, slope_type="expo"):
-        if slope_type == "expo":
-            mu_vals = starting * \
-                np.exp(-1 * slopes * time_step)
-        elif slope_type == "linear":
+    def _get_mean_per_time_step(
+        self,
+        starting,
+        slopes,
+        time_step,
+        slope_type='expo'
+    ):
+        if slope_type == 'expo':
+            mu_vals = starting * np.exp(-1 * slopes * time_step)
+        elif slope_type == 'linear':
             mu_vals = starting + slopes * time_step
         return mu_vals
 
@@ -194,7 +195,7 @@ class NormalLossDecayLandscape:
         return self.simulated_loss
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     max_time_steps = 100
     print("Debugging Landscaper")
     
