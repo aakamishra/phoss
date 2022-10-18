@@ -138,6 +138,7 @@ class ExperimentRunner:
         with open(scheduler_config, encoding='utf-8') as f:
             scheduler_config = json.load(f)
         scheduler_config['max_t'] = max_num_epochs
+        scheduler_config['num_samples'] = num_samples
 
         if verbose:
             print('Initializing Ray Runner')
@@ -176,6 +177,7 @@ class ExperimentRunner:
         with open(scheduler_config, encoding='utf-8') as f:
             scheduler_config = json.load(f)
         scheduler_config['max_t'] = max_num_epochs
+        scheduler_config['num_samples'] = num_samples
 
         if verbose:
             print('Initializing Ray Runner')

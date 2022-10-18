@@ -1,8 +1,8 @@
 from experiment_analysis import ExperimentAnalysis
 from experiment_group import ExperimentGroup
 
-seeds = [90, 100, 110]
-methods = ["ASHA", "Hyperband"]
+seeds = [61, 121, 124, 161, 165]
+methods = [ "Random", "ASHA", "SHA", "PTB"]
 results = []
 exp_groups = []
 save_dir = "checkpoints"

@@ -1,8 +1,6 @@
-from contextlib import nullcontext
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from typing import Callable
 import matplotlib
 matplotlib.use('TkAgg')
 import json
@@ -38,30 +36,29 @@ class ParametricConfig:
 
         return ParametricConfig(beta1, b1std, beta2, b2std, beta3, b3std, alpha, alphastd)
 
-class ParameticLossCurve:
-    def __init__(self, json_name=None, num_samples=10, beta0=0, b0std=0.01, config_list=[]):
+class ParametricLossCurve:
+    def __init__(self, json_name=None, num_samples=10, beta0=0, b0std=0.01, seed=109, max_num_epochs=100):
         self.beta0 = beta0
         self.b0std = b0std
-        self.config_list = config_list
+        self.max_num_epochs = max_num_epochs
+        self.config_list = []
         self.num_samples = num_samples
         self.std_start = DEFAULT_STARTING_STD_ARGS
         self.std_end = DEFAULT_ENDING_STD_ARGS
+        self.json_name = json_name
+        self.seed = seed
+        np.random.seed(self.seed)
 
-
-        if len(config_list) == 0 and json_name == None:
-            raise AttributeError("Invalid Arguments Provided")
-
-        elif len(config_list) == 0:
-            with open(json_name, encoding="utf-8") as f:
-                configs = json.load(f)
-                self.beta0 = configs["beta0"]
-                self.b0std = configs["b0std"]
-                self.std_start = configs["std_start"]
-                self.std_end = configs["std_end"]
-                dict_config_list = configs["config_list"] 
-                for cf in dict_config_list:
-                    self.config_list.append(ParametricConfig.read_from_dict(cf))
-
+        with open(json_name, encoding="utf-8") as f:
+            configs = json.load(f)
+            self.beta0 = configs["beta0"]
+            self.b0std = configs["b0std"]
+            self.std_start = configs["std_start"]
+            self.std_end = configs["std_end"]
+            dict_config_list = configs["config_list"] 
+            for cf in dict_config_list:
+                self.config_list.append(ParametricConfig.read_from_dict(cf))
+                
         self.random_sample_config_list = []
         for config in self.config_list:
             rn_cf = {}
@@ -77,13 +74,26 @@ class ParameticLossCurve:
     
     def generate_curve_means(self, time):
 
-        total = copy.deepcopy(self.beta0_list)
         time = np.array([time])
         time_series = np.repeat(time, self.num_samples, axis=0)
-        for config in self.random_sample_config_list:
-            total += config['beta1'] / ( np.float_power(time_series + config['beta2'], config['alpha']) + config['beta3'])
-        return total
 
+        total = self.beta0_list
+        vals = []
+        for config in self.random_sample_config_list:
+            beta1 = config['beta1']
+            beta2 = config['beta2']
+            beta3 = config['beta3']
+            alpha = config['alpha']
+            vals.append(beta1 / ( np.float_power(time_series + beta2, alpha) + beta3))
+        
+        return total + np.sum(np.array(vals), axis=0)
+
+    def generate(self):
+        vals = []
+        for i in range(self.max_num_epochs):
+            vals.append(self.generate_curve_means(i))
+        return np.array(vals)
+            
 
 class NormalLossDecayLandscape:
     def __init__(self, 
@@ -103,11 +113,12 @@ class NormalLossDecayLandscape:
         self.samples = samples
         self.max_time_steps = max_time_steps
         self.std_curve_shape = std_curve_shape
-        self.parametric_curve = ParameticLossCurve(json_name=json_config, num_samples=samples)
+        self.json_config = json_config
         self.simulated_loss = []
         self.true_loss = []
 
 
+        self.parametric_curve = ParametricLossCurve(json_name=self.json_config, num_samples=self.samples, seed=self.seed, max_num_epochs=self.max_time_steps)
         # generate list of standard deviations for each loss timeseries
         self.std_starting_list = self._assign_normal_values(
             self.parametric_curve.std_start, samples, absolute=True)
@@ -172,8 +183,9 @@ class NormalLossDecayLandscape:
         simulated_loss = []
         true_loss = []
 
+        loss_mu_values = self.parametric_curve.generate()
         for time_step in range(self.max_time_steps):
-            cur_loss_mu_values = self.parametric_curve.generate_curve_means(time_step)
+            cur_loss_mu_values = loss_mu_values[time_step]
 
             cur_std_values = self._get_mean_per_time_step(
                     self.std_starting_list, 
@@ -199,6 +211,28 @@ if __name__ == '__main__':
     max_time_steps = 100
     print("Debugging Landscaper")
     
+    landscaper = NormalLossDecayLandscape("simulator_configs/overfit.json", max_time_steps=max_time_steps, samples=100)
+    sim_loss = landscaper.generate_landscape()
+    time_range = np.arange(0, max_time_steps)
+    print(sim_loss[:,0])
+    plt.plot(time_range, sim_loss, alpha=0.1, color="blue")
+    plt.plot(time_range, landscaper.true_loss, alpha=0.1, color="red")
+    plt.show()
+
+    sns.heatmap(sim_loss)
+    plt.show()
+
+    landscaper = NormalLossDecayLandscape("simulator_configs/overfit.json", max_time_steps=max_time_steps, samples=100)
+    sim_loss = landscaper.generate_landscape()
+    time_range = np.arange(0, max_time_steps)
+    print(sim_loss[:,0])
+    plt.plot(time_range, sim_loss, alpha=0.1, color="blue")
+    plt.plot(time_range, landscaper.true_loss, alpha=0.1, color="red")
+    plt.show()
+
+    sns.heatmap(sim_loss)
+    plt.show()
+
     landscaper = NormalLossDecayLandscape("simulator_configs/overfit.json", max_time_steps=max_time_steps, samples=100)
     sim_loss = landscaper.generate_landscape()
     time_range = np.arange(0, max_time_steps)
