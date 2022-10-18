@@ -2,7 +2,7 @@ from experiment_analysis import ExperimentAnalysis
 from experiment_group import ExperimentGroup
 
 seeds = [90, 100, 110]
-methods = ["Median", "ASHA"]
+methods = ["ASHA", "Hyperband"]
 results = []
 exp_groups = []
 save_dir = "checkpoints"
