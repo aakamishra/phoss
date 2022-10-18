@@ -17,6 +17,7 @@ for method in methods:
                             max_num_epochs=max_num_epochs,
                             num_actors=num_workers,
                             num_samples=num_samples,
+                            simulator_config="simulator_configs/default_config.json",
                             save_dir="checkpoints",
                             verbose=3)
     result = egroup.run()

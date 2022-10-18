@@ -71,17 +71,20 @@ class ExperimentAnalysis:
         plt.ylabel(
             '{} per Epoch Instance Regret'.format(regret_type.capitalize())
         )
-        for regret, error, name in zip(regrets, errors, names):
+        plot_colors = ["lawngreen", "cyan", "magenta", "salmon"]
+        error_colors = ["yellow", "blue", "purple", "red"]
+        inds = list(range(len(regrets)))
+        for regret, error, name, i in zip(regrets, errors, names, inds):
             regret = np.insert(regret, 0, 0)
             error = np.insert(error, 0, 0)
             plt.plot(list(range(1, len(regret)+1)), regret,
-                     label=name if name else None)
+                     label=name if name else None, color=plot_colors[i])
             plt.fill_between(
                 list(range(1, len(regret)+1)),
                 regret + error,
                 regret - error,
-                alpha=0.4,
-                facecolor='blue',
+                alpha=0.2,
+                facecolor=error_colors[i],
                 linewidth=0
             )
         plt.legend()
