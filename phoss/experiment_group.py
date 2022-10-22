@@ -232,8 +232,3 @@ class ExperimentGroup:
                 self.moving_loss_avgs,
                 self.moving_loss_avgs_errs
             )
-
-
-if __name__ == '__main__':
-    egroup = ExperimentGroup('ASHA', None, [109, 100])
-    egroup.run()

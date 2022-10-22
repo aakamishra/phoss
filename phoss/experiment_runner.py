@@ -1,4 +1,3 @@
-import argparse
 from datetime import datetime
 import json
 import os
@@ -246,41 +245,3 @@ class ExperimentRunner:
 
         print('Finished')
         return checkpoint
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('sched_name', type=str, default='ASHA')
-    parser.add_argument('--num-samples', type=int, default=100)
-    parser.add_argument('--max-num-epochs', type=int, default=100)
-    parser.add_argument('--gpus-per-trial', type=int, default=0)
-    parser.add_argument('--cpus-per-trial', type=int, default=1)
-    parser.add_argument('--num-actors', type=int, default=8)
-    parser.add_argument('--seed', type=int, default=109)
-    parser.add_argument('--verbose', type=int, default=0)
-    parser.add_argument('--simulator-config', type=str,
-                        default=phoss.common.DEFAULT_SIMULATOR_CONFIG)
-    parser.add_argument('--scheduler-config', type=str,
-                        default=phoss.common.DEFAULT_SCHEDULER_CONFIG)
-    parser.add_argument('--save', type=str, default='')
-
-    args = parser.parse_args()
-
-    try:
-        if args.verbose:
-            print('Starting main program...')
-        ExperimentRunner.call_simulator(
-            args.sched_name,
-            num_samples=args.num_samples,
-            max_num_epochs=args.max_num_epochs,
-            gpus_per_trial=args.gpus_per_trial,
-            cpus_per_trial=args.cpus_per_trial,
-            num_actors=args.num_actors,
-            simulator_config=args.simulator_config,
-            scheduler_config=args.scheduler_config,
-            seed=args.seed,
-            verbose=args.verbose,
-            save_dir=args.save
-        )
-    except Exception as e:
-        print(e)
