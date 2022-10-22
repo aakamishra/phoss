@@ -136,3 +136,4 @@ dmypy.json
 **/__pycache__
 **/test-run-*.csv
 **/checkpoint-*.json
+*.png
