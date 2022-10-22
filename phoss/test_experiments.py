@@ -2,7 +2,8 @@ from experiment_analysis import ExperimentAnalysis
 from experiment_group import ExperimentGroup
 
 seeds = [61, 121, 124, 161, 165]
-methods = [ 'Random', 'ASHA', 'SHA', 'PTB']
+# methods = [ 'Random', 'ASHA', 'Hyperband', 'PTB']
+methods = ['Random', 'ASHA', 'Hyperband']
 results = []
 exp_groups = []
 save_dir = 'checkpoints'
@@ -20,11 +21,12 @@ for method in methods:
         num_samples=num_samples,
         simulator_config='simulator_configs/default_config.json',
         save_dir='checkpoints',
-        verbose=3
+        verbose=0
     )
     result = egroup.run()
     exp_groups.append(egroup)
     results.append(result)
 
-ExperimentAnalysis.plot_results(results)
+print('Before plotting', results)
+ExperimentAnalysis.plot_results(results, show=False)
 

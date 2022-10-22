@@ -95,7 +95,7 @@ class ExperimentGroup:
 
     @staticmethod
     def _time_processing_column(df, start_time, bin_value=1):
-        df["time_interval"] = ((df['timestamp'] - start_time)/(bin_value)).astype(int)
+        df['time_interval'] = ((df['timestamp'] - start_time) / (bin_value)).astype(int)
         return df
 
     def _calculate_average_loss_per_worker(
@@ -123,7 +123,7 @@ class ExperimentGroup:
         reset_time_log = time_log.reset_index()
         for i in range(0, max_time_interval+1):
             # for each time interval subset the qualifying configurations
-            subset_array = reset_time_log[reset_time_log["time_interval"] <= i]["loss"].values
+            subset_array = reset_time_log[reset_time_log['time_interval'] <= i]['loss'].values
             # sort the values from smallest to largest for the test loss values
             sorted_subset_array = np.sort(subset_array)
             # get the average of the top 10 values
@@ -141,8 +141,7 @@ class ExperimentGroup:
 
     # TODO: Make this a common function
     def _average_n_lists(
-        self, lists: List[Union[int, float]],
-            override: bool = False
+        self, lists: List[Union[int, float]], override: bool = False
     ) -> Tuple[List[float], List[float]]:
         if not lists:
             return []
