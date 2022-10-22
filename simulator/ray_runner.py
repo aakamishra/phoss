@@ -14,9 +14,9 @@ import pandas as pd
 import numpy as np
 
 
-DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
-DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
-SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA", "Random", "Median"]
+DEFAULT_SIMULATOR_CONFIG = 'simulator_configs/default_config.json'
+DEFAULT_SCHEDULER_CONFIG = 'scheduler_configs/default_config.json'
+SCHEDULER_CONFIG_NAMES = ['ASHA', 'Hyperband', 'PBT', 'PredASHA', 'Random', 'Median']
 
 
 class RayRunner:
@@ -57,7 +57,7 @@ class RayRunner:
         self.max_num_epochs = max_num_epochs
         self.num_actors = num_actors
         self.num_samples = num_samples
-        self.gen_sim_path = ""
+        self.gen_sim_path = ''
 
         # randomness
         self.seed = seed
@@ -98,7 +98,7 @@ class RayRunner:
                                  'object_timeout_milliseconds': 9000000})
 
 
-        print("passing path: ",  self.gen_sim_path)
+        print('passing path: ',  self.gen_sim_path)
         search_config = {
             'gen_sim_path': self.gen_sim_path,
             'index': tune.grid_search(

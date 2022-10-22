@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 
 class ExperimentVisualizer:
+
     def __init__(
         self,
         checkpoint_file: str = None,
@@ -55,12 +56,8 @@ class ExperimentVisualizer:
             'index'
         )['training_iteration'].max().values
         for i in range(len(totals)):
-            plt.axvline(
-                i + 0.5,
-                1,
-                1 - totals[i] / 100,
-                linewidth=0.9,
-                color='white')
+            plt.axvline(i + 0.5, 1, 1 - totals[i] / 100, linewidth=0.9,
+                        color='white')
 
         plt.xlabel('Samples')
         plt.ylabel('Epochs')
@@ -73,18 +70,10 @@ class ExperimentVisualizer:
         time_range = list(range(self.max_num_epochs))
         fig = plt.figure(figsize=(12, 12))
         ax = fig.add_subplot(1, 1, 1)  # nrows, ncols, index
-        plt.plot(
-            time_range,
-            self.simulated_loss,
-            alpha=0.1,
-            color='blue',
-            label='Simulated Loss')
-        plt.plot(
-            time_range,
-            self.true_loss,
-            alpha=0.15,
-            color='red',
-            label='True Mean Schedule')
+        plt.plot(time_range, self.simulated_loss, alpha=0.1, color='blue',
+                 label='Simulated Loss')
+        plt.plot(time_range, self.true_loss, alpha=0.15, color='red',
+                 label='True Mean Schedule')
         best_path = self.total_data_file.groupby(
             'training_iteration'
         )['loss'].min().values
@@ -92,7 +81,8 @@ class ExperimentVisualizer:
             time_range,
             best_path,
             label='Scheduler Chosen Path Best Value',
-            color='cyan')
+            color='cyan'
+        )
         best_average_worker_path = self.total_data_file.groupby(
             'training_iteration'
         )['loss'].apply(lambda x: x.nsmallest(self.num_workers).mean())
@@ -100,7 +90,8 @@ class ExperimentVisualizer:
             time_range,
             best_average_worker_path,
             label=f'Scheduler Chosen Average {self.num_workers}-Worker Path Value',
-            color='lime')
+            color='lime'
+        )
         ax.set_facecolor('silver')
         # Hide the right and top spines
         ax.spines.right.set_visible(False)

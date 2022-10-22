@@ -15,9 +15,10 @@ import numpy as np
 from ray_runner import RayRunner
 
 
-DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
-DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
-SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "Median", "Random", "PredASHA"]
+DEFAULT_SIMULATOR_CONFIG = 'simulator_configs/default_config.json'
+DEFAULT_SCHEDULER_CONFIG = 'scheduler_configs/default_config.json'
+SCHEDULER_CONFIG_NAMES = ['ASHA', 'Hyperband', 'PBT', 'Median', 'Random',
+                          'PredASHA']
 
 
 class CheckpointObject:
@@ -209,7 +210,7 @@ class ExperimentRunner:
         print('Saving results at', path)
         if not os.path.exists(path):
             os.mkdir(path)
-        
+
         true_sim_path = os.path.join(path,
                                      runner.simulation_name + '-true-sim.csv')
         gen_sim_path = os.path.join(path,
@@ -234,7 +235,7 @@ class ExperimentRunner:
         ray.shutdown()
 
         # move total data to csv
-        if verbose: print("saving trial results")
+        if verbose: print('saving trial results')
         data_path = os.path.join(path, runner.simulation_name + '-data.csv')
         data.to_csv(data_path)
 
