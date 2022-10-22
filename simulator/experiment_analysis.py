@@ -1,7 +1,3 @@
-# take in 1-N experiment groups
-# if > 1, then draw comparison graphs
-
-from cProfile import label
 import matplotlib.pyplot as plt
 import numpy as np
 from typing import List
@@ -71,8 +67,8 @@ class ExperimentAnalysis:
         plt.ylabel(
             '{} per Epoch Instance Regret'.format(regret_type.capitalize())
         )
-        plot_colors = ["lawngreen", "cyan", "magenta", "salmon"]
-        error_colors = ["yellow", "blue", "purple", "red"]
+        plot_colors = ['lawngreen', 'cyan', 'magenta', 'salmon']
+        error_colors = ['yellow', 'blue', 'purple', 'red']
         inds = list(range(len(regrets)))
         for regret, error, name, i in zip(regrets, errors, names, inds):
             regret = np.insert(regret, 0, 0)
@@ -118,7 +114,9 @@ class ExperimentAnalysis:
         if show:
             plt.show()
 
-    def plot_results(results: List[ExperimentGroupResults], show: bool = True) -> None:
+    def plot_results(
+        results: List[ExperimentGroupResults], show: bool = True
+    ) -> None:
         regrets = [result.avg_cumulative_regret for result in results]
         errors = [result.avg_cumulative_regret_err for result in results]
         names = [result.scheduler_name for result in results]

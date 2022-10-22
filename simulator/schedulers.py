@@ -36,17 +36,20 @@ class Scheduler:
             max_num_epochs = self.scheduler_config.get('max_t', 100)
             reduction_factor = self.scheduler_config.get('reduction_factor', 4)
 
-            return HyperBandScheduler(max_t=max_num_epochs,
-                                    time_attr='training_iteration',
-                                    reduction_factor=reduction_factor)
+            return HyperBandScheduler(
+                max_t=max_num_epochs,
+                time_attr='training_iteration',
+                reduction_factor=reduction_factor
+            )
 
         elif self.scheduler_name == 'Median':
             print('using Median Rule')
             max_num_epochs = self.scheduler_config.get('max_t', 100)
-            return MedianStoppingRule(time_attr= 'training_iterations',
-                                    grace_period=0,
-                                    min_samples_required=5,
-                                    )
+            return MedianStoppingRule(
+                time_attr= 'training_iterations',
+                grace_period=0,
+                min_samples_required=5,
+            )
 
         elif self.scheduler_name == 'PBT':
             print('using Population-based Training')

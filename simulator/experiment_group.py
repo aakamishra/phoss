@@ -100,7 +100,9 @@ class ExperimentGroup:
         df["time_interval"] = ((df['timestamp'] - start_time)/(bin_value)).astype(int)
         return df
 
-    def _calculate_average_loss_per_worker(self, data_file: str, bin_value=1) -> List[float]:
+    def _calculate_average_loss_per_worker(
+        self, data_file: str, bin_value: int = 1
+    ) -> List[float]:
         # load in data
         data = data_file = pd.read_csv(data_file)
 
@@ -131,7 +133,7 @@ class ExperimentGroup:
             top_avgs_err = np.std(sorted_subset_array[:self.num_actors])
             moving_avg.append(top_avgs)
             moving_avg_err.append(top_avgs_err)
-        
+
         return moving_avg, moving_avg_err
 
 
