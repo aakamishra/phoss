@@ -1,11 +1,9 @@
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
+import json
 import matplotlib
 matplotlib.use('TkAgg')
-import json
-import copy
-import pdb
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
 
 
 DEFAULT_STARTING_STD_ARGS = {'mu': 0.02, 'std': 0.005}

@@ -1,5 +1,5 @@
-from ray import tune
 import numpy as np
+from ray import tune
 
 
 class SimulatedTrainable(tune.Trainable):
