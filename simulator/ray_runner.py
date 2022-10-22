@@ -16,27 +16,29 @@ import numpy as np
 
 DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
 DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
-SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA"]
+SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA", "Random", "Median"]
 
 
 class RayRunner:
-    def __init__(self,
-                 scheduler_name: str = "ASHA",
-                 num_samples: int = 16,
-                 max_num_epochs: int = 10,
-                 gpus_per_trial: int = 1,
-                 cpus_per_trial: int = 1,
-                 num_actors: int = 1,
-                 seed: int = 109,
-                 algo = None,
-                 scheduler_object = None,
-                 simulator_config: str = None,
-                 scheduler_config: dict = None,
-                 verbose: int = 0):
+    def __init__(
+        self,
+        scheduler_name: str = 'ASHA',
+        num_samples: int = 16,
+        max_num_epochs: int = 10,
+        gpus_per_trial: int = 1,
+        cpus_per_trial: int = 1,
+        num_actors: int = 1,
+        seed: int = 109,
+        algo=None,
+        scheduler_object=None,
+        simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
+        scheduler_config: dict = None,
+        verbose: int = 0
+    ):
 
         # search and scheduler objects
         self.scheduler_name = scheduler_name
-        if scheduler_name.lower() == "custom":
+        if scheduler_name.lower() == 'custom':
             assert scheduler_object is not None
             self.scheduler = scheduler_object
         else:
@@ -55,35 +57,26 @@ class RayRunner:
         self.max_num_epochs = max_num_epochs
         self.num_actors = num_actors
         self.num_samples = num_samples
+        self.gen_sim_path = ""
 
         # randomness
         self.seed = seed
 
         # simulation name and logging information
-        self.simulation_name = f"test-run-n-{self.num_samples}-t-{self.max_num_epochs}-{self.scheduler_name}-seed-{seed}"
+        self.simulation_name = 'test-run-n-{}-t-{}-{}-seed-{}'.format(
+            self.num_samples, self.max_num_epochs, self.scheduler_name, seed)
         self.verbose = verbose
 
     def generate_simulation(self) -> True:
         """Function for generated the loss landscape for training on"""
-
-        # load the simulator configuration files enumerating the distribution
-        simulator_config_dict = {}
-        if self.simulator_config:
-            with open(self.simulator_config, encoding='utf-8') as f:
-                simulator_config_dict = json.load(f)
-        else:
-            with open(DEFAULT_SIMULATOR_CONFIG, encoding='utf-8') as f:
-                simulator_config_dict = json.load(f)
 
         # create normal landscape
         self.landscaper = NormalLossDecayLandscape(
             seed=self.seed,
             max_time_steps=self.max_num_epochs,
             samples=self.num_samples,
-            starting_mu_args=simulator_config_dict["STARTING_MU_ARGS"],
-            ending_mu_args=simulator_config_dict["ENDING_MU_ARGS"],
-            starting_std_args=simulator_config_dict["STARTING_STD_ARGS"],
-            ending_std_args=simulator_config_dict["ENDING_STD_ARGS"])
+            json_config=self.simulator_config,
+        )
 
         self.landscaper.generate_landscape()
 
@@ -101,13 +94,17 @@ class RayRunner:
         ray.init(runtime_env=runtime_env,
                  include_dashboard=False,
                  ignore_reinit_error=True,
-                 _system_config={"num_heartbeats_timeout": 800,
-                                 "object_timeout_milliseconds": 9000000})
+                 _system_config={'num_heartbeats_timeout': 800,
+                                 'object_timeout_milliseconds': 9000000})
 
 
-        search_config = {'sample_array': self.landscaper.simulated_loss,
-                         'index': tune.grid_search(list(range(self.num_samples)))
-                         }
+        print("passing path: ",  self.gen_sim_path)
+        search_config = {
+            'gen_sim_path': self.gen_sim_path,
+            'index': tune.grid_search(
+                list(
+                    range(
+                        self.num_samples)))}
 
         tuner = tune.Tuner(
             tune.with_resources(
@@ -127,7 +124,7 @@ class RayRunner:
                 local_dir=os.getcwd() + '/results',
                 name=self.simulation_name,
                 callbacks=[CSVLoggerCallback()],
-                verbose=0,
+                verbose=self.verbose,
                 sync_config=tune.SyncConfig(
                     syncer=None  # Disable syncing
                 )
@@ -135,224 +132,4 @@ class RayRunner:
         )
 
         results = tuner.fit()
-        ray.shutdown()
-
         return results
-
-
-class RayRunnerAPI:
-
-    def call_simulator(
-        sched_name: str,
-        num_samples: int = 16,
-        max_num_epochs: int = 10,
-        gpus_per_trial: int = 0,
-        cpus_per_trial: int = 1,
-        num_actors: int = 4,
-        seed: int = 109,
-        scheduler_object = None,
-        simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
-        scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
-        verbose: int = 0,
-        save_dir: str = '',
-    ):
-        """
-        Public function to be called as an API endpoint.
-        """
-        if sched_name.lower() == "custom":
-            if not scheduler_object:
-                print("Custom scheduler object not provided!")
-                return
-            return RayRunnerAPI._call_custom_simulator(
-                scheduler_object,
-                num_samples=num_samples,
-                max_num_epochs=max_num_epochs,
-                gpus_per_trial=gpus_per_trial,
-                cpus_per_trial=cpus_per_trial,
-                num_actors=num_actors,
-                seed=seed,
-                verbose=verbose,
-                save_dir=save_dir)
-        else:
-            if sched_name not in SCHEDULER_CONFIG_NAMES:
-                print("Could not find sched_name {} in \
-                    SCHEDULER_CONFIG_NAMES".format(sched_name))
-            return RayRunnerAPI._call_common_simulator(
-                sched_name,
-                num_samples=num_samples,
-                max_num_epochs=max_num_epochs,
-                gpus_per_trial=gpus_per_trial,
-                cpus_per_trial=cpus_per_trial,
-                num_actors=num_actors,
-                seed=seed,
-                simulator_config=simulator_config,
-                scheduler_config=scheduler_config,
-                verbose=verbose,
-                save_dir=save_dir)
-
-    def _call_common_simulator(
-        sched_name: str,
-        num_samples: int = 16,
-        max_num_epochs: int = 10,
-        gpus_per_trial: int = 0,
-        cpus_per_trial: int = 1,
-        num_actors: int = 4,
-        seed: int = 109,
-        simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
-        scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
-        verbose: int = 0,
-        save_dir: str = '',
-    ):
-        """
-        Helper method used to call RayRunner on a common scheduler such as ASHA,
-        Hyperband, or PTB.
-        To be called from `RayRunnerAPI.call_simulator`.
-        """
-        # loading scheduler config
-        if verbose:
-            print("Loading config file for scheduler: ", scheduler_config)
-        with open(scheduler_config, encoding='utf-8') as f:
-            scheduler_config = json.load(f)
-        scheduler_config['max_t'] = max_num_epochs
-
-        if verbose:
-            print("Initializing Ray Runner")
-        runner = RayRunner(
-            num_samples=num_samples,
-            num_actors=num_actors,
-            cpus_per_trial=cpus_per_trial,
-            gpus_per_trial=gpus_per_trial,
-            simulator_config=simulator_config,
-            scheduler_config=scheduler_config,
-            max_num_epochs=max_num_epochs,
-            scheduler_name=sched_name,
-            seed=seed)
-        return RayRunnerAPI._run_simulation(runner, verbose=verbose,
-                                            save_dir=save_dir)
-
-    def _call_custom_simulator(
-        scheduler,
-        num_samples: int = 16,
-        max_num_epochs: int = 10,
-        gpus_per_trial: int = 0,
-        cpus_per_trial: int = 1,
-        num_actors: int = 4,
-        seed: int = 109,
-        verbose: int = 0,
-        save_dir: str = '',
-    ) -> None:
-        """
-        Helper method used to call Ray Runner on a custom-defined scheduler.
-        To be called from `RayRunnerAPI.call_simulator`.
-        """
-        # loading scheduler config
-        if verbose:
-            print("Loading config file for scheduler: ", scheduler_config)
-        with open(scheduler_config, encoding='utf-8') as f:
-            scheduler_config = json.load(f)
-        scheduler_config['max_t'] = max_num_epochs
-
-        if verbose:
-            print("Initializing Ray Runner")
-        runner = RayRunner(
-            num_samples=num_samples,
-            num_actors=num_actors,
-            cpus_per_trial=cpus_per_trial,
-            gpus_per_trial=gpus_per_trial,
-            scheduler_object=scheduler,
-            max_num_epochs=max_num_epochs,
-            scheduler_name="custom",
-            seed=seed)
-        return RayRunnerAPI._run_simulation(runner, verbose=verbose,
-                                            save_dir=save_dir)
-
-    def _run_simulation(
-        runner: RayRunner, verbose: bool = 0, save_dir: str = ''
-    ):
-        """
-        Runs the simulator given a RayRunner instance and saves the results as a
-        set of CSV files.
-        """
-        if verbose: print("Generating loss simulation")
-        runner.generate_simulation()
-
-        if verbose: print("Running Ray Tune Program")
-        timestamp = datetime.now()
-        results = runner.run()
-
-        if verbose: print("Moving data to checkpoint csv")
-        dfs = {result.log_dir: result.metrics_dataframe for result in results}
-        data = pd.concat(dfs.values(), ignore_index=True)
-
-        path = os.path.join(os.getcwd(), save_dir) if save_dir else os.getcwd()
-        print("Saving results at", path)
-        if not os.path.exists(path):
-            os.mkdir(path)
-        true_sim_path = os.path.join(path,
-                                     runner.simulation_name + "-true-sim.csv")
-        gen_sim_path = os.path.join(path,
-                                    runner.simulation_name + "-gen-sim.csv")
-        np.savetxt(true_sim_path, runner.landscaper.true_loss, delimiter=",")
-        np.savetxt(gen_sim_path, runner.landscaper.simulated_loss, delimiter=",")
-
-        # move total data to csv
-        data_path = os.path.join(path, runner.simulation_name + "-data.csv")
-        data.to_csv(data_path)
-
-        # perform checkpointing
-        checkpoint_obj = {
-            "num_actors": runner.num_actors,
-            "max_num_epochs": runner.max_num_epochs,
-            "scheduler_name": runner.scheduler_name,
-            "gen_sim_file": gen_sim_path,
-            "true_sim_file": true_sim_path,
-            "simulation_name": runner.simulation_name,
-            "data_file": data_path,
-            "num_samples": runner.num_samples,
-        }
-        serialized_timestamp = timestamp.strftime("%Y-%m-%d-%H-%M-%S")
-        fcheckpoint = os.path.join(
-            path, "checkpoint-{}.json".format(serialized_timestamp))
-        with open(fcheckpoint, "w") as fp:
-            json.dump(checkpoint_obj, fp, indent=4)
-
-        print("done.")
-        return checkpoint_obj
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('sched_name', type=str, default="ASHA")
-    parser.add_argument('--num-samples', type=int, default=100)
-    parser.add_argument('--max-num-epochs', type=int, default=100)
-    parser.add_argument('--gpus-per-trial', type=int, default=0)
-    parser.add_argument('--cpus-per-trial', type=int, default=1)
-    parser.add_argument('--num-actors', type=int, default=8)
-    parser.add_argument('--seed', type=int, default=109)
-    parser.add_argument('--verbose', type=int, default=0)
-    parser.add_argument('--simulator-config',
-                        type=str,
-                        default=DEFAULT_SIMULATOR_CONFIG)
-    parser.add_argument('--scheduler-config',
-                        type=str,
-                        default=DEFAULT_SCHEDULER_CONFIG)
-    parser.add_argument('--save', type=str, default='')
-
-    args = parser.parse_args()
-
-    try:
-        if args.verbose: print("Starting main program...")
-        RayRunnerAPI.call_simulator(
-            args.sched_name,
-            num_samples=args.num_samples,
-            max_num_epochs=args.max_num_epochs,
-            gpus_per_trial=args.gpus_per_trial,
-            cpus_per_trial=args.cpus_per_trial,
-            num_actors=args.num_actors,
-            simulator_config=args.simulator_config,
-            scheduler_config=args.scheduler_config,
-            seed=args.seed,
-            verbose=args.verbose,
-            save_dir=args.save)
-    except Exception as e:
-        print(e)

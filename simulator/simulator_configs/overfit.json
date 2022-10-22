@@ -1,0 +1,35 @@
+{
+    "beta0": 0.2,
+    "b0std": 1e-2,
+    "std_start": {"mu": 0.01, "std": 0.005},
+    "std_end": {"mu": 0.02, "std": 0.0005},
+    "config_list": [
+        {
+            "beta1": 0.9,
+            "beta2": 0.1,
+            "beta3": 1,
+            "alpha": 1,
+            "b1std": 1e-1,
+            "b2std": 1e-3,
+            "b3std": 1e-2
+        },
+        {
+            "beta1": -4.5,
+            "beta2": 10,
+            "beta3": -4,
+            "alpha": 1,
+            "b1std": 5e-1,
+            "b2std": 1e-1,
+            "b3std": 5e-1
+        },
+        {
+            "beta1": 4.5,
+            "beta2": 2,
+            "beta3": 2,
+            "alpha": 2,
+            "b1std": 1,
+            "b2std": 5e-1,
+            "b3std": 5e-1
+        }
+    ]
+}

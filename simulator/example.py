@@ -1,6 +1,6 @@
-from ray_runner import RayRunnerAPI
+from ray_runner import ExperimentRunner
 
-RayRunnerAPI.call_simulator(
+ExperimentRunner.call_simulator(
             'ASHA',
             num_samples=100,
             max_num_epochs=100,

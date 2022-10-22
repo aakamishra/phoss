@@ -1,0 +1,53 @@
+{
+    "beta0": 1.0345,
+    "b0std": 0.1,
+    "std_start": {"mu": 0.01, "std": 0.005},
+    "std_end": {"mu": 0.001, "std": 0.0005},
+    "config_list": [
+        {
+            "beta1": -0.05711,
+            "beta2": 0,
+            "beta3": 0,
+            "alpha": -1,
+            "b1std": 1e-4,
+            "b2std": 0,
+            "b3std": 0
+        },
+        {
+            "beta1": 0.0026155,
+            "beta2": 0,
+            "beta3": 0,
+            "alpha": -2,
+            "b1std": 1e-5,
+            "b2std": 0,
+            "b3std": 0
+        },
+        {
+            "beta1": -4.8746500000000005e-05,
+            "beta2": 0,
+            "beta3": 0,
+            "alpha": -3,
+            "b1std": 1e-7,
+            "b2std": 0,
+            "b3std": 0
+        },
+        {
+            "beta1": 3.7915399999999996e-07,
+            "beta2": 0,
+            "beta3": 0,
+            "alpha": -4,
+            "b1std": 1e-9,
+            "b2std": 0,
+            "b3std": 0
+        },
+        {
+            "beta1": -1.03563e-09,
+            "beta2": 0,
+            "beta3": 0,
+            "alpha": -5,
+            "b1std": 1e-11,
+            "b2std": 0,
+            "b3std": 0
+        }
+    ]
+}
