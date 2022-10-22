@@ -55,8 +55,8 @@ class Scheduler:
             return PopulationBasedTraining(
                         time_attr="training_iteration",
                         perturbation_interval = max_num_epochs//20, 
-                        quantile_fraction=0.2,
-                        resample_probability=0.5,
+                        quantile_fraction=0.5,
+                        resample_probability=0.9,
                         hyperparam_mutations={
                             "index" : tune.randint(0, num_samples)
                         },

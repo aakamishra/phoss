@@ -6,6 +6,7 @@ matplotlib.use('TkAgg')
 import json
 import copy
 import pdb
+from collections import OrderedDict
 
 DEFAULT_STARTING_STD_ARGS = {"mu": 0.02, "std": 0.005}
 DEFAULT_ENDING_STD_ARGS = {"mu": 0.001, "std": 0.005}
@@ -58,7 +59,7 @@ class ParametricLossCurve:
             dict_config_list = configs["config_list"] 
             for cf in dict_config_list:
                 self.config_list.append(ParametricConfig.read_from_dict(cf))
-                
+
         self.random_sample_config_list = []
         for config in self.config_list:
             rn_cf = {}
@@ -211,35 +212,31 @@ if __name__ == '__main__':
     max_time_steps = 100
     print("Debugging Landscaper")
     
-    landscaper = NormalLossDecayLandscape("simulator_configs/overfit.json", max_time_steps=max_time_steps, samples=100)
+    landscaper = NormalLossDecayLandscape("simulator_configs/cifar-10-mean.json", max_time_steps=max_time_steps, samples=100)
     sim_loss = landscaper.generate_landscape()
     time_range = np.arange(0, max_time_steps)
-    print(sim_loss[:,0])
-    plt.plot(time_range, sim_loss, alpha=0.1, color="blue")
-    plt.plot(time_range, landscaper.true_loss, alpha=0.1, color="red")
-    plt.show()
+    plt.plot(time_range, sim_loss, alpha=0.1, color="blue", label="Simulated Values")
+    plt.plot(time_range, landscaper.true_loss, alpha=0.1, color="red", label="True Values")
 
-    sns.heatmap(sim_loss)
-    plt.show()
+    """
+    fig, ax = plt.subplots(nrows=2, ncols=2,  figsize=(20,20))
 
-    landscaper = NormalLossDecayLandscape("simulator_configs/overfit.json", max_time_steps=max_time_steps, samples=100)
-    sim_loss = landscaper.generate_landscape()
-    time_range = np.arange(0, max_time_steps)
-    print(sim_loss[:,0])
-    plt.plot(time_range, sim_loss, alpha=0.1, color="blue")
-    plt.plot(time_range, landscaper.true_loss, alpha=0.1, color="red")
-    plt.show()
-
-    sns.heatmap(sim_loss)
-    plt.show()
-
-    landscaper = NormalLossDecayLandscape("simulator_configs/overfit.json", max_time_steps=max_time_steps, samples=100)
-    sim_loss = landscaper.generate_landscape()
-    time_range = np.arange(0, max_time_steps)
-    print(sim_loss[:,0])
-    plt.plot(time_range, sim_loss, alpha=0.1, color="blue")
-    plt.plot(time_range, landscaper.true_loss, alpha=0.1, color="red")
-    plt.show()
-
-    sns.heatmap(sim_loss)
+    i = 0
+    configs = ["simulator_configs/overfit.json", "simulator_configs/underfit.json", "simulator_configs/double_descent.json", "simulator_configs/default_config.json"]
+    titles = ["Overfit", "Underfit", "Double Descent", "Normal"]
+    for row in ax:
+        for col in row:
+            landscaper = NormalLossDecayLandscape(configs[i], max_time_steps=max_time_steps, samples=100)
+            sim_loss = landscaper.generate_landscape()
+            col.plot(time_range, sim_loss, alpha=0.1, color="blue", label="Simulated Values")
+            col.plot(time_range, landscaper.true_loss, alpha=0.1, color="red", label="True Values")
+            col.set_xlabel("Epochs")
+            col.set_ylabel("Loss")
+            col.set_title(titles[i])
+            i += 1
+    
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys())  
+    """
     plt.show()
