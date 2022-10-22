@@ -1,10 +1,6 @@
-# take in 1-N experiment groups
-# if > 1, then draw comparison graphs
-
-from cProfile import label
+from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import List
 from experiment_group import ExperimentGroupResults
 
 
@@ -71,8 +67,8 @@ class ExperimentAnalysis:
         plt.ylabel(
             '{} per Epoch Instance Regret'.format(regret_type.capitalize())
         )
-        plot_colors = ["lawngreen", "cyan", "magenta", "salmon"]
-        error_colors = ["yellow", "blue", "purple", "red"]
+        plot_colors = ['lawngreen', 'cyan', 'magenta', 'salmon']
+        error_colors = ['yellow', 'blue', 'purple', 'red']
         inds = list(range(len(regrets)))
         for regret, error, name, i in zip(regrets, errors, names, inds):
             regret = np.insert(regret, 0, 0)
@@ -91,6 +87,7 @@ class ExperimentAnalysis:
         plt.savefig(save_as)
         if show:
             plt.show()
+        plt.close()
 
     def _plot_average_moving_loss(
         average_moving_loss: List[np.array],
@@ -117,20 +114,23 @@ class ExperimentAnalysis:
         plt.savefig(plot_name)
         if show:
             plt.show()
+        plt.close()
 
-    def plot_results(results: List[ExperimentGroupResults]) -> None:
+    def plot_results(
+        results: List[ExperimentGroupResults], show: bool = True
+    ) -> None:
         regrets = [result.avg_cumulative_regret for result in results]
         errors = [result.avg_cumulative_regret_err for result in results]
         names = [result.scheduler_name for result in results]
-
         ExperimentAnalysis._plot_cumulative_regrets(
             regrets,
             errors,
             results[0].num_workers,
             'Cumulative_Regrets',
-            show=True,
+            show=show,
             names=names,
         )
+
         regrets = [result.avg_mean_regret for result in results]
         errors = [result.avg_mean_regret_err for result in results]
         ExperimentAnalysis._plot_average_regrets(
@@ -138,7 +138,7 @@ class ExperimentAnalysis:
             errors,
             results[0].num_workers,
             'Average_Regrets',
-            show=True,
+            show=show,
             names=names,
         )
 
@@ -149,7 +149,7 @@ class ExperimentAnalysis:
             errors,
             results[0].num_workers,
             'Average_Moving_Loss',
-            show=True,
+            show=show,
             names=names,
         )
 
