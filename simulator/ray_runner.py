@@ -1,4 +1,5 @@
 from typing import Optional
+import common
 from schedulers import Scheduler
 from trainables import SimulatedTrainable
 from landscaper import NormalLossDecayLandscape
@@ -14,12 +15,8 @@ import pandas as pd
 import numpy as np
 
 
-DEFAULT_SIMULATOR_CONFIG = 'simulator_configs/default_config.json'
-DEFAULT_SCHEDULER_CONFIG = 'scheduler_configs/default_config.json'
-SCHEDULER_CONFIG_NAMES = ['ASHA', 'Hyperband', 'PBT', 'PredASHA', 'Random', 'Median']
-
-
 class RayRunner:
+    
     def __init__(
         self,
         scheduler_name: str = 'ASHA',
@@ -31,7 +28,7 @@ class RayRunner:
         seed: int = 109,
         algo=None,
         scheduler_object=None,
-        simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
+        simulator_config: str = common.DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: dict = None,
         verbose: int = 0
     ):
@@ -42,8 +39,11 @@ class RayRunner:
             assert scheduler_object is not None
             self.scheduler = scheduler_object
         else:
+            assert scheduler_name in common.SCHEDULER_CONFIG_NAMES
             self.scheduler = Scheduler(
-                scheduler_name, scheduler_config).get_instance()
+                scheduler_name,
+                scheduler_config
+            ).get_instance()
 
         self.algo = algo
         self.simulator_config = simulator_config
@@ -91,8 +91,7 @@ class RayRunner:
         runtime_env = {'includes': formatted_src_files}
 
         # initialize Ray RPC server
-        ray.init(runtime_env=runtime_env,
-                 include_dashboard=False,
+        ray.init(runtime_env=runtime_env, include_dashboard=False,
                  ignore_reinit_error=True,
                  _system_config={'num_heartbeats_timeout': 800,
                                  'object_timeout_milliseconds': 9000000})
@@ -101,15 +100,13 @@ class RayRunner:
         print('passing path: ',  self.gen_sim_path)
         search_config = {
             'gen_sim_path': self.gen_sim_path,
-            'index': tune.grid_search(
-                list(
-                    range(
-                        self.num_samples)))}
+            'index': tune.grid_search(list(range(self.num_samples))),
+        }
 
         tuner = tune.Tuner(
             tune.with_resources(
                 tune.with_parameters(SimulatedTrainable),
-                resources={'cpu': self.cpus, 'gpu': self.gpus}
+                resources={'cpu': self.cpus, 'gpu': self.gpus},
             ),
             tune_config=tune.TuneConfig(
                 metric='loss',
@@ -127,7 +124,7 @@ class RayRunner:
                 verbose=self.verbose,
                 sync_config=tune.SyncConfig(
                     syncer=None  # Disable syncing
-                )
+                ),
             ),
         )
 

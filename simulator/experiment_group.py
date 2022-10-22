@@ -1,13 +1,10 @@
 import numpy as np
 import pandas as pd
 from typing import Any, List, Optional, Tuple, Union
+import common
 from experiment_runner import ExperimentRunner
 from itertools import zip_longest
 import pdb
-
-DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
-DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
-SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA", "Median", "Random"]
 
 
 class ExperimentGroupResults:
@@ -47,8 +44,8 @@ class ExperimentGroup:
         gpus_per_trial: int = 0,
         cpus_per_trial: int = 1,
         num_actors: int = 4,
-        simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
-        scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
+        simulator_config: str = common.DEFAULT_SIMULATOR_CONFIG,
+        scheduler_config: str = common.DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
         save_dir: str = '',
     ):
@@ -71,7 +68,7 @@ class ExperimentGroup:
         if self.scheduler_name.lower() == 'custom' and not self.scheduler_obj:
             print('Custom scheduler specified but object not passed in!')
             return False
-        elif self.scheduler_name not in SCHEDULER_CONFIG_NAMES:
+        elif self.scheduler_name not in common.SCHEDULER_CONFIG_NAMES:
             print('Could not find scheduler {}!'.format(self.scheduler_name))
             return False
         return True

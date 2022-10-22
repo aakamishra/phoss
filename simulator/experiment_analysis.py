@@ -118,7 +118,7 @@ class ExperimentAnalysis:
         if show:
             plt.show()
 
-    def plot_results(results: List[ExperimentGroupResults]) -> None:
+    def plot_results(results: List[ExperimentGroupResults], show: bool = True) -> None:
         regrets = [result.avg_cumulative_regret for result in results]
         errors = [result.avg_cumulative_regret_err for result in results]
         names = [result.scheduler_name for result in results]
@@ -128,7 +128,7 @@ class ExperimentAnalysis:
             errors,
             results[0].num_workers,
             'Cumulative_Regrets',
-            show=True,
+            show=show,
             names=names,
         )
         regrets = [result.avg_mean_regret for result in results]
@@ -138,7 +138,7 @@ class ExperimentAnalysis:
             errors,
             results[0].num_workers,
             'Average_Regrets',
-            show=True,
+            show=show,
             names=names,
         )
 
@@ -149,7 +149,7 @@ class ExperimentAnalysis:
             errors,
             results[0].num_workers,
             'Average_Moving_Loss',
-            show=True,
+            show=show,
             names=names,
         )
 

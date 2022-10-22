@@ -61,7 +61,7 @@ class Scheduler:
                     'index' : tune.randint(0, num_samples)
                 },
             )
-        else:
-            print('running Random Configurations')
-            return FIFOScheduler()
+
+        print('running Random Configurations')
+        return FIFOScheduler()
 
