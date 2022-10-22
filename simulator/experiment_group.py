@@ -99,7 +99,7 @@ class ExperimentGroup:
         return df
 
     def _calculate_average_loss_per_worker(
-        self, data_file: str, bin_value: int = 1
+        self, data_file: str, bin_value=1, actor_override=4
     ) -> List[float]:
         # load in data
         data = data_file = pd.read_csv(data_file)
@@ -127,8 +127,12 @@ class ExperimentGroup:
             # sort the values from smallest to largest for the test loss values
             sorted_subset_array = np.sort(subset_array)
             # get the average of the top 10 values
-            top_avgs = np.mean(sorted_subset_array[:self.num_actors])
-            top_avgs_err = np.std(sorted_subset_array[:self.num_actors])
+            if actor_override != 0:
+                actors = actor_override
+            else:
+                actors = self.num_actors
+            top_avgs = np.mean(sorted_subset_array[:actors])
+            top_avgs_err = np.std(sorted_subset_array[:actors])
             moving_avg.append(top_avgs)
             moving_avg_err.append(top_avgs_err)
 
@@ -168,7 +172,7 @@ class ExperimentGroup:
 
     def run(self) -> Optional[ExperimentGroupResults]:
         # Run all individual experiments
-        checkpoints = []
+        self.checkpoints = []
         for seed in self.seeds:
             checkpoint = ExperimentRunner.call_simulator(
                 self.scheduler_name,
@@ -188,46 +192,46 @@ class ExperimentGroup:
                 print('Simulator failed for config with name {} and seed {}. '
                       'Skipping!'.format(self.scheduler_name, seed))
             else:
-                checkpoints.append(checkpoint)
+                self.checkpoints.append(checkpoint)
 
         # Average the results if there are multiple checkpoints
-        if not checkpoints:
+        if not self.checkpoints:
             print('No available checkpoint objects!')
             return None
         else:
             # Average individual regrets
-            mean_regrets = []
-            cumulative_regrets = []
-            moving_loss_avgs = []
-            moving_loss_avgs_errs = []
-            for checkpoint in checkpoints:
+            self.mean_regrets = []
+            self.cumulative_regrets = []
+            self.moving_loss_avgs = []
+            self.moving_loss_avgs_errs = []
+            for checkpoint in self.checkpoints:
                 mean_regret, cumulative_regret = self._calculate_regret(
                     checkpoint.true_sim_file, checkpoint.data_file
                 )
                 moving_avg, moving_avg_err = self._calculate_average_loss_per_worker(checkpoint.data_file)
-                moving_loss_avgs.append(moving_avg)
-                moving_loss_avgs_errs.append(moving_avg_err)
+                self.moving_loss_avgs.append(moving_avg)
+                self.moving_loss_avgs_errs.append(moving_avg_err)
 
-                mean_regrets.append(mean_regret)
-                cumulative_regrets.append(cumulative_regret)
+                self.mean_regrets.append(mean_regret)
+                self.cumulative_regrets.append(cumulative_regret)
 
-            avg_mean_regrets, avg_mean_regrets_err = self._average_n_lists(mean_regrets)
+            self.avg_mean_regrets, self.avg_mean_regrets_err = self._average_n_lists(self.mean_regrets)
             # TODO Reconcile which error to use (seed error, or value error)
-            moving_loss_avgs = self._average_non_matching_lists(moving_loss_avgs)
-            moving_loss_avgs_errs = self._average_non_matching_lists(moving_loss_avgs_errs)
-            print('Mean regrets', avg_mean_regrets)
-            avg_cumulative_regrets, avg_cumulative_regrets_err = self._average_n_lists(cumulative_regrets)
-            print('Cumlative regrets', avg_cumulative_regrets)
+            self.moving_loss_avgs = self._average_non_matching_lists(self.moving_loss_avgs)
+            self.moving_loss_avgs_errs = self._average_non_matching_lists(self.moving_loss_avgs_errs)
+            print('Mean regrets', self.avg_mean_regrets)
+            self.avg_cumulative_regrets, self.avg_cumulative_regrets_err = self._average_n_lists(self.cumulative_regrets)
+            print('Cumlative regrets', self.avg_cumulative_regrets)
             return ExperimentGroupResults(
                 self.scheduler_name, #TODO: Give option to pass in different name
-                len(checkpoints),
+                len(self.checkpoints),
                 self.num_actors,
-                avg_mean_regrets,
-                avg_mean_regrets_err,
-                avg_cumulative_regrets,
-                avg_cumulative_regrets_err,
-                moving_loss_avgs,
-                moving_loss_avgs_errs
+                self.avg_mean_regrets,
+                self.avg_mean_regrets_err,
+                self.avg_cumulative_regrets,
+                self.avg_cumulative_regrets_err,
+                self.moving_loss_avgs,
+                self.moving_loss_avgs_errs
             )
 
 

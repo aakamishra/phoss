@@ -67,4 +67,3 @@ class Scheduler:
 
         print('running Random Configurations')
         return FIFOScheduler()
-
