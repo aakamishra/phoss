@@ -87,6 +87,7 @@ class ExperimentAnalysis:
         plt.savefig(save_as)
         if show:
             plt.show()
+        plt.close()
 
     def _plot_average_moving_loss(
         average_moving_loss: List[np.array],
@@ -113,6 +114,7 @@ class ExperimentAnalysis:
         plt.savefig(plot_name)
         if show:
             plt.show()
+        plt.close()
 
     def plot_results(
         results: List[ExperimentGroupResults], show: bool = True
@@ -120,7 +122,6 @@ class ExperimentAnalysis:
         regrets = [result.avg_cumulative_regret for result in results]
         errors = [result.avg_cumulative_regret_err for result in results]
         names = [result.scheduler_name for result in results]
-
         ExperimentAnalysis._plot_cumulative_regrets(
             regrets,
             errors,
@@ -129,6 +130,7 @@ class ExperimentAnalysis:
             show=show,
             names=names,
         )
+
         regrets = [result.avg_mean_regret for result in results]
         errors = [result.avg_mean_regret_err for result in results]
         ExperimentAnalysis._plot_average_regrets(
