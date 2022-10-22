@@ -6,8 +6,8 @@ from typing import Optional
 import pandas as pd
 import numpy as np
 import ray
-import common
-from ray_runner import RayRunner
+import phoss.common
+from phoss.ray_runner import RayRunner
 
 
 class CheckpointObject:
@@ -62,8 +62,8 @@ class ExperimentRunner:
         num_actors: int = 4,
         seed: int = 109,
         scheduler_object=None,
-        simulator_config: str = common.DEFAULT_SIMULATOR_CONFIG,
-        scheduler_config: str = common.DEFAULT_SCHEDULER_CONFIG,
+        simulator_config: str = phoss.common.DEFAULT_SIMULATOR_CONFIG,
+        scheduler_config: str = phoss.common.DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
         save_dir: str = '',
     ) -> Optional[CheckpointObject]:
@@ -86,7 +86,7 @@ class ExperimentRunner:
                 save_dir=save_dir
             )
         else:
-            if sched_name not in common.SCHEDULER_CONFIG_NAMES:
+            if sched_name not in phoss.common.SCHEDULER_CONFIG_NAMES:
                 print('Could not find sched_name {} in \
                     SCHEDULER_CONFIG_NAMES'.format(sched_name))
                 return None
@@ -112,8 +112,8 @@ class ExperimentRunner:
         cpus_per_trial: int = 1,
         num_actors: int = 4,
         seed: int = 109,
-        simulator_config: str = common.DEFAULT_SIMULATOR_CONFIG,
-        scheduler_config: str = common.DEFAULT_SCHEDULER_CONFIG,
+        simulator_config: str = phoss.common.DEFAULT_SIMULATOR_CONFIG,
+        scheduler_config: str = phoss.common.DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
         save_dir: str = '',
     ) -> CheckpointObject:
@@ -259,9 +259,9 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=109)
     parser.add_argument('--verbose', type=int, default=0)
     parser.add_argument('--simulator-config', type=str,
-                        default=common.DEFAULT_SIMULATOR_CONFIG)
+                        default=phoss.common.DEFAULT_SIMULATOR_CONFIG)
     parser.add_argument('--scheduler-config', type=str,
-                        default=common.DEFAULT_SCHEDULER_CONFIG)
+                        default=phoss.common.DEFAULT_SCHEDULER_CONFIG)
     parser.add_argument('--save', type=str, default='')
 
     args = parser.parse_args()

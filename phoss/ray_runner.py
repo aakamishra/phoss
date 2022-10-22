@@ -3,10 +3,10 @@ import ray
 from ray import tune
 from ray.air.config import RunConfig
 from ray.tune.logger import CSVLoggerCallback
-import common
-from landscaper import NormalLossDecayLandscape
-from schedulers import Scheduler
-from trainables import SimulatedTrainable
+import phoss.common
+from phoss.landscaper import NormalLossDecayLandscape
+from phoss.schedulers import Scheduler
+from phoss.trainables import SimulatedTrainable
 
 
 class RayRunner:
@@ -22,7 +22,7 @@ class RayRunner:
         seed: int = 109,
         algo=None,
         scheduler_object=None,
-        simulator_config: str = common.DEFAULT_SIMULATOR_CONFIG,
+        simulator_config: str = phoss.common.DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: dict = None,
         verbose: int = 0
     ):
@@ -33,7 +33,7 @@ class RayRunner:
             assert scheduler_object is not None
             self.scheduler = scheduler_object
         else:
-            assert scheduler_name in common.SCHEDULER_CONFIG_NAMES
+            assert scheduler_name in phoss.common.SCHEDULER_CONFIG_NAMES
             self.scheduler = Scheduler(
                 scheduler_name,
                 scheduler_config

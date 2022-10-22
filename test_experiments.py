@@ -1,5 +1,6 @@
-from experiment_analysis import ExperimentAnalysis
-from experiment_group import ExperimentGroup
+import phoss
+from phoss.experiment_analysis import ExperimentAnalysis
+from phoss.experiment_group import ExperimentGroup
 
 seeds = [61, 121, 124, 161, 165]
 # methods = [ 'Random', 'ASHA', 'Hyperband', 'PTB']
@@ -19,9 +20,8 @@ for method in methods:
         max_num_epochs=max_num_epochs,
         num_actors=num_workers,
         num_samples=num_samples,
-        simulator_config='simulator_configs/default_config.json',
         save_dir='checkpoints',
-        verbose=0
+        verbose=1
     )
     result = egroup.run()
     exp_groups.append(egroup)

@@ -1,7 +1,7 @@
 from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
-from experiment_group import ExperimentGroupResults
+from phoss.experiment_group import ExperimentGroupResults
 
 
 # TODO: Combine a lot of functions with ExperimentVisualizer class

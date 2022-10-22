@@ -1,4 +1,4 @@
-from experiment_visualizer import ExperimentVisualizer
+from phoss.experiment_visualizer import ExperimentVisualizer
 
 checkpoint_file = '/Users/amishra/DHPOSS/DHPOSS/simulator/test/checkpoint-2022-10-13-09-50-21.json'
 viz = ExperimentVisualizer(checkpoint_file)

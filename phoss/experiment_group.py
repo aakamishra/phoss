@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 from typing import Any, List, Optional, Tuple, Union
-import common
-from experiment_runner import ExperimentRunner
+import phoss.common
+from phoss.experiment_runner import ExperimentRunner
 
 
 class ExperimentGroupResults:
@@ -42,8 +42,8 @@ class ExperimentGroup:
         gpus_per_trial: int = 0,
         cpus_per_trial: int = 1,
         num_actors: int = 4,
-        simulator_config: str = common.DEFAULT_SIMULATOR_CONFIG,
-        scheduler_config: str = common.DEFAULT_SCHEDULER_CONFIG,
+        simulator_config: str = phoss.common.DEFAULT_SIMULATOR_CONFIG,
+        scheduler_config: str = phoss.common.DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
         save_dir: str = '',
     ):
@@ -66,7 +66,7 @@ class ExperimentGroup:
         if self.scheduler_name.lower() == 'custom' and not self.scheduler_obj:
             print('Custom scheduler specified but object not passed in!')
             return False
-        elif self.scheduler_name not in common.SCHEDULER_CONFIG_NAMES:
+        elif self.scheduler_name not in phoss.common.SCHEDULER_CONFIG_NAMES:
             print('Could not find scheduler {}!'.format(self.scheduler_name))
             return False
         return True

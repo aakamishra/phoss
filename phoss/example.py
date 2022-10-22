@@ -1,4 +1,4 @@
-from ray_runner import ExperimentRunner
+from phoss.ray_runner import ExperimentRunner
 
 ExperimentRunner.call_simulator(
             'ASHA',
