@@ -59,8 +59,9 @@ class ExperimentAnalysis:
         if not names:
             names = ['' for _ in regrets[0]]
 
+        ax = plt.subplot(111)
         plt.title(
-            '{} Regret for {} Wokers Per Epoch'.format(
+            '{} Regret for {} Workers Per Epoch'.format(
                 regret_type.capitalize(), num_workers)
         )
         plt.xlabel('Epochs')
@@ -73,9 +74,9 @@ class ExperimentAnalysis:
         for regret, error, name, i in zip(regrets, errors, names, inds):
             regret = np.insert(regret, 0, 0)
             error = np.insert(error, 0, 0)
-            plt.plot(list(range(1, len(regret)+1)), regret,
+            ax.plot(list(range(1, len(regret)+1)), regret,
                      label=name if name else None, color=plot_colors[i])
-            plt.fill_between(
+            ax.fill_between(
                 list(range(1, len(regret)+1)),
                 regret + error,
                 regret - error,
@@ -83,9 +84,11 @@ class ExperimentAnalysis:
                 facecolor=error_colors[i],
                 linewidth=0
             )
+        ax.spines.right.set_visible(False)
+        ax.spines.top.set_visible(False)
+        plt.grid()
+        ax.set_facecolor('whitesmoke')
         plt.legend()
-        if regret_type == 'cumulative':
-            print(regret_type, regrets[-1], errors[-1])
         plt.savefig(save_as)
         if show:
             plt.show()
@@ -98,20 +101,35 @@ class ExperimentAnalysis:
         plot_name: str,
         show: bool = False,
         names: List[str] = [],
+        limit: str = 'ASHA',
     ) -> None:
-        plt.title('Top {} Averaged Moving Loss over Time'.format(num_workers))
-        plt.xlabel('Time Bins')
+        time_limit = 0
+        ind = 0
+        for i, name in enumerate(names):
+            if name == limit:
+                ind = i
+        time_limit = len(average_moving_loss[ind])
+        ax = plt.subplot(111)
+        plt.title('Top {} Averaged Moving Losses over Time'.format(4))
+        plt.xlabel('Simulated Time Scale')
         plt.ylabel('Averaged Loss')
         for average, error, name in zip(average_moving_loss, average_moving_loss_error, names):
-            plt.plot(list(range(1, len(average)+1)), average, label=name)
-            plt.fill_between(
-                list(range(1, len(average)+1)),
-                average + error,
-                average - error,
+            local_limit = min(time_limit, len(average))
+            ax.plot(list(range(1, local_limit+1)), average[:local_limit], label=name)
+            ax.fill_between(
+                list(range(1, local_limit+1)),
+                average[:local_limit] + error[:local_limit],
+                average[:local_limit] - error[:local_limit],
                 alpha=0.2,
                 facecolor='blue',
                 linewidth=0
             )
+        # Hide the right and top spines
+        ax.spines.right.set_visible(False)
+        ax.spines.top.set_visible(False)
+        plt.grid()
+        ax.set_facecolor('whitesmoke')
+        plt.xticks(np.linspace(1, time_limit+1, 10) ,list(range(1, 11)))
         plt.legend()
         plt.savefig(plot_name)
         if show:

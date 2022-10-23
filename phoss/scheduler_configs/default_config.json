@@ -1,5 +1,7 @@
 {
     "brackets": 4,
     "grace_period": 1,
-    "reduction_factor": 4
+    "reduction_factor": 4,
+    "resample_prob": 0.2,
+    "num_points": 3
 }

@@ -3,7 +3,7 @@ from phoss.experiment_group import ExperimentGroup
 
 print('Running example experiment script')
 seeds = [61, 121, 124, 161, 165]
-methods = ['ASHA']
+methods = ['Median']
 results = []
 exp_groups = []
 save_dir = 'checkpoints'

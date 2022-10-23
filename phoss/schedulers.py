@@ -45,21 +45,23 @@ class Scheduler:
         elif self.scheduler_name == 'Median':
             print('Using Median Rule')
             max_num_epochs = self.scheduler_config.get('max_t', 100)
+            num_points = self.scheduler_config.get('num_points', 3)
             return MedianStoppingRule(
                 time_attr='training_iteration',
-                grace_period=0,
-                min_samples_required=5,
+                grace_period=1,
+                min_samples_required=num_points,
             )
 
         elif self.scheduler_name == 'PBT':
             print('Using Population-based Training')
             max_num_epochs = self.scheduler_config.get('max_t', 100)
             num_samples = self.scheduler_config.get('num_samples', 100)
+            resample_prob = self.scheduler_config('resample_prob', 0.2)
             return PopulationBasedTraining(
                 time_attr='training_iteration',
                 perturbation_interval = max_num_epochs//20,
                 quantile_fraction=0.2,
-                resample_probability=0.5,
+                resample_probability=resample_prob,
                 hyperparam_mutations={
                     'index' : tune.randint(0, num_samples)
                 },

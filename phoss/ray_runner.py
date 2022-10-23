@@ -89,6 +89,7 @@ class RayRunner:
         # initialize Ray RPC server
         ray.init(runtime_env=runtime_env, include_dashboard=False,
                  ignore_reinit_error=True,
+                 log_to_driver=False,
                  _system_config={'num_heartbeats_timeout': 800,
                                  'object_timeout_milliseconds': 9000000})
 
@@ -100,7 +101,7 @@ class RayRunner:
         }
 
         if self.async_factor:
-            search_config['async_factor'] = tune.choice([0.0, 0.1, 0.2])
+            search_config['async_factor'] = tune.choice([0.0, 0.14, 0.3])
 
         tuner = tune.Tuner(
             tune.with_resources(
