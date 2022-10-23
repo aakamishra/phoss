@@ -84,6 +84,8 @@ class ExperimentAnalysis:
                 linewidth=0
             )
         plt.legend()
+        if regret_type == 'cumulative':
+            print(regret_type, regrets[-1], errors[-1])
         plt.savefig(save_as)
         if show:
             plt.show()

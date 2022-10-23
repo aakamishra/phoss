@@ -2,14 +2,15 @@ from phoss.experiment_analysis import ExperimentAnalysis
 from phoss.experiment_group import ExperimentGroup
 
 print('Running example experiment script')
-seeds = [161, 165]
-methods = ['Random', 'ASHA', 'Hyperband', 'PBT']
+seeds = [61, 121, 124, 161, 165]
+methods = ['ASHA']
 results = []
 exp_groups = []
 save_dir = 'checkpoints'
+# Run for 16, 8, 4, 2
 num_workers = 16
 num_samples = 100
-max_num_epochs = 25
+max_num_epochs = 100
 
 for method in methods:
     egroup = ExperimentGroup(
@@ -20,7 +21,8 @@ for method in methods:
         num_actors=num_workers,
         num_samples=num_samples,
         save_dir='checkpoints',
-        verbose=0
+        verbose=0,
+        async_factor=True
     )
     result = egroup.run()
     exp_groups.append(egroup)
