@@ -10,7 +10,11 @@ name = "phoss"
 version = "1.0.0"
 description = "A hyperparameter search simulation platform for distributed testing of scheduling algorithms."
 readme = "README.md"
-authors = [{ name = "Jeremy Hsu", email = "jeremyhsu1@gmail.com" }, { name = "Aakash Mishra", email = "aakamishra1@gmail.com" }, { name = "Frank D'Agostino", email = "frankdag20@gmail.com"}]
+authors = [
+    { name = "Jeremy Hsu", email = "jeremyhsu1@gmail.com" },
+    { name = "Aakash Mishra", email = "aakamishra1@gmail.com" },
+    { name = "Frank D'Agostino", email = "frankdag20@gmail.com"}
+]
 license = { file = "LICENSE" }
 dependencies = [
     "matplotlib >= 3.5.2",
@@ -21,6 +25,15 @@ dependencies = [
     "scikit-learn >= 1.1.2",
     "scipy >= 1.9.1",
     "seaborn >= 0.11.2"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Distributed Computing"
 ]
 requires-python = ">=3.9"
 
