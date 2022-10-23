@@ -33,6 +33,9 @@ In this section, we provide an overview of the core modules of PHOSS.
 a user-specified distribution and workload configuration. These parameters can
 be specified a JSON file that is passed into the `Landscaper` constructor.
 
+We have provided a couple of sample configuration files in
+`phoss/simulator_configs`.
+
 ### Experiment Runner
 
 `ExperimentRunner` defines and runs a single experiment, which is performing a
