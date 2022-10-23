@@ -43,9 +43,10 @@ class Scheduler:
         elif self.scheduler_name == "Median":
             print("using Median Rule")
             max_num_epochs = self.scheduler_config.get("max_t", 100)
-            return MedianStoppingRule(time_attr= 'training_iterations',
-                                    grace_period=0, 
-                                    min_samples_required=5,
+            return MedianStoppingRule(time_attr= 'training_iteration',
+                                    grace_period=2, 
+                                    min_samples_required=3,
+                                    min_time_slice = 0,
                                     )
         
         elif self.scheduler_name == "PBT":
@@ -54,9 +55,9 @@ class Scheduler:
             num_samples = self.scheduler_config.get("num_samples", 100)
             return PopulationBasedTraining(
                         time_attr="training_iteration",
-                        perturbation_interval = max_num_epochs//20, 
-                        quantile_fraction=0.5,
-                        resample_probability=0.9,
+                        perturbation_interval = max_num_epochs//5, 
+                        quantile_fraction=0.2,
+                        resample_probability=0.2,
                         hyperparam_mutations={
                             "index" : tune.randint(0, num_samples)
                         },

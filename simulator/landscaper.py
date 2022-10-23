@@ -209,10 +209,10 @@ class NormalLossDecayLandscape:
 
 
 if __name__ == '__main__':
-    max_time_steps = 100
+    max_time_steps = 256
     print("Debugging Landscaper")
     
-    landscaper = NormalLossDecayLandscape("simulator_configs/cifar-10-mean.json", max_time_steps=max_time_steps, samples=100)
+    landscaper = NormalLossDecayLandscape("simulator_configs/lstm-ptb.json", max_time_steps=max_time_steps, samples=100)
     sim_loss = landscaper.generate_landscape()
     time_range = np.arange(0, max_time_steps)
     plt.plot(time_range, sim_loss, alpha=0.1, color="blue", label="Simulated Values")

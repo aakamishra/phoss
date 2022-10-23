@@ -1,4 +1,5 @@
 from ray import tune
+import time
 import numpy as np
 
 class SimulatedTrainable(tune.Trainable):
@@ -63,6 +64,7 @@ class SimulatedTrainable(tune.Trainable):
         """
         loss = self.series[self.training_iteration]
         self.internal_training_iteration += 1
+        time.sleep(0.5)
         return {"index": self.index, "loss": loss}
 
     def save_checkpoint(self, checkpoint_dir: str) -> None:

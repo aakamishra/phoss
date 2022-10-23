@@ -12,6 +12,7 @@ from datetime import datetime
 import json
 import pandas as pd
 import numpy as np
+from ray.tune.search.basic_variant import BasicVariantGenerator
 
 
 DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
@@ -93,6 +94,7 @@ class RayRunner:
         # initialize Ray RPC server
         ray.init(runtime_env=runtime_env,
                  include_dashboard=False,
+                 log_to_driver=False,
                  ignore_reinit_error=True,
                  _system_config={'num_heartbeats_timeout': 800,
                                  'object_timeout_milliseconds': 9000000})
@@ -114,6 +116,7 @@ class RayRunner:
             tune_config=tune.TuneConfig(
                 metric='loss',
                 mode='min',
+                search_alg=BasicVariantGenerator(points_to_evaluate=[{"index":i} for i in range(self.num_samples)]),
                 scheduler=self.scheduler,
                 num_samples=1,
                 max_concurrent_trials=self.num_actors,
