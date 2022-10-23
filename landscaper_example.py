@@ -6,8 +6,9 @@ import seaborn as sns
 
 from phoss.landscaper import NormalLossDecayLandscape
 
+print('Running example landscaper script')
+
 max_time_steps = 100
-print('Debugging Landscaper')
 
 landscaper = NormalLossDecayLandscape(
     'phoss/simulator_configs/overfit.json',

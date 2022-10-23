@@ -72,11 +72,11 @@ class SimulatedTrainable(tune.Trainable):
         No Model to checkpoint
         """
         if self.verbose:
-            print('Virutal Save: ', checkpoint_dir)
+            print('Virtual Save:', checkpoint_dir)
 
     def load_checkpoint(self, checkpoint: str) -> None:
         """
         No Models to load
         """
         if self.verbose:
-            print('Virutal Load: ', checkpoint)
+            print('Virtual Load:', checkpoint)

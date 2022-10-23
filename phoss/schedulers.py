@@ -32,7 +32,7 @@ class Scheduler:
             )
 
         elif self.scheduler_name == 'Hyperband':
-            print('using Hyperband')
+            print('Using Hyperband')
             max_num_epochs = self.scheduler_config.get('max_t', 100)
             reduction_factor = self.scheduler_config.get('reduction_factor', 4)
 
@@ -43,7 +43,7 @@ class Scheduler:
             )
 
         elif self.scheduler_name == 'Median':
-            print('using Median Rule')
+            print('Using Median Rule')
             max_num_epochs = self.scheduler_config.get('max_t', 100)
             return MedianStoppingRule(
                 time_attr= 'training_iterations',
@@ -52,7 +52,7 @@ class Scheduler:
             )
 
         elif self.scheduler_name == 'PBT':
-            print('using Population-based Training')
+            print('Using Population-based Training')
             max_num_epochs = self.scheduler_config.get('max_t', 100)
             num_samples = self.scheduler_config.get('num_samples', 100)
             return PopulationBasedTraining(
@@ -65,5 +65,5 @@ class Scheduler:
                 },
             )
 
-        print('running Random Configurations')
+        print('Using random configurations with FIFO scheduler')
         return FIFOScheduler()

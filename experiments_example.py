@@ -1,6 +1,7 @@
 from phoss.experiment_analysis import ExperimentAnalysis
 from phoss.experiment_group import ExperimentGroup
 
+print('Running example experiment script')
 seeds = [161, 165]
 methods = ['Random', 'ASHA', 'Hyperband', 'PBT']
 results = []

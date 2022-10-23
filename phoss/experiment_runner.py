@@ -223,7 +223,8 @@ class ExperimentRunner:
         ray.shutdown()
 
         # move total data to csv
-        if verbose: print('saving trial results')
+        if verbose:
+            print('Saving trial results')
         data_path = os.path.join(path, runner.simulation_name + '-data.csv')
         data.to_csv(data_path)
 
@@ -243,5 +244,5 @@ class ExperimentRunner:
             path, 'checkpoint-{}.json'.format(serialized_timestamp))
         checkpoint.persist_json(fcheckpoint)
 
-        print('Finished')
+        print('Finished running simulation')
         return checkpoint

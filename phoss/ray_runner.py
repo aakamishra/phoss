@@ -91,7 +91,7 @@ class RayRunner:
                                  'object_timeout_milliseconds': 9000000})
 
 
-        print('passing path: ',  self.gen_sim_path)
+        print('Passing path:',  self.gen_sim_path)
         search_config = {
             'gen_sim_path': self.gen_sim_path,
             'index': tune.grid_search(list(range(self.num_samples))),
