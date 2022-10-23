@@ -20,6 +20,8 @@ print(sim_loss[:,0])
 plt.plot(time_range, sim_loss, alpha=0.1, color='blue')
 plt.plot(time_range, landscaper.true_loss, alpha=0.1, color='red')
 plt.show()
+plt.close()
 
 sns.heatmap(sim_loss)
 plt.show()
+plt.close()
