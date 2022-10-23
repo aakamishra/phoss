@@ -166,4 +166,3 @@ dependencies:
     - uvicorn==0.16.0
     - virtualenv==20.16.5
     - yarl==1.8.1
-prefix: /Users/amishra/miniconda3/envs/dhposs-env

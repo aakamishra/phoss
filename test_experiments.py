@@ -27,6 +27,5 @@ for method in methods:
     exp_groups.append(egroup)
     results.append(result)
 
-print('Before plotting', results)
 ExperimentAnalysis.plot_results(results, show=False)
 

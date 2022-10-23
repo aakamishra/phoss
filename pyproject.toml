@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["phoss"]
+
+[project]
+name = "phoss"
+version = "1.0.0"
+description = "A hyperparameter search simulation platform for distributed testing of scheduling algorithms."
+readme = "README.md"
+authors = [{ name = "Jeremy Hsu", email = "jeremyhsu1@gmail.com" }, { name = "Aakash Mishra", email = "aakamishra1@gmail.com" }, { name = "Frank D'Agostino", email = "frankdag20@gmail.com"}]
+license = { file = "LICENSE" }
+dependencies = [
+    "matplotlib >= 3.5.2",
+    "numpy >= 1.23.1",
+    "pandas >= 1.4.4",
+    "ray[air]",
+    "ray[tune]",
+    "scikit-learn >= 1.1.2",
+    "scipy >= 1.9.1",
+    "seaborn >= 0.11.2"
+]
+requires-python = ">=3.9"
+
+[project.urls]
+Source = "https://github.com/aakamishra/phoss"

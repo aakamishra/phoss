@@ -137,3 +137,4 @@ dmypy.json
 **/test-run-*.csv
 **/checkpoint-*.json
 *.png
+*.DS_Store
