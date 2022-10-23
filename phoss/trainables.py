@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from ray import tune
 
 
@@ -25,6 +26,7 @@ class SimulatedTrainable(tune.Trainable):
         self.series = self.values[:,self.index]
         self.internal_training_iteration = 0
         self.verbose = config.get('verbose', False)
+        self.async_factor = config.get('async_factor', 0.0)
 
     def reset_config(self, new_config: dict) -> bool:
         """
@@ -45,6 +47,7 @@ class SimulatedTrainable(tune.Trainable):
             self.index = new_config.get('index')
             self.series = self.values[:,self.index]
             self.internal_training_iteration = 0
+            self.async_factor = config.get('async_factor', 0.0)
             return True
         else:
             return False
@@ -65,6 +68,8 @@ class SimulatedTrainable(tune.Trainable):
         """
         loss = self.series[self.training_iteration]
         self.internal_training_iteration += 1
+        if self.async_factor != 0.0:
+            time.sleep(self.async_factor)
         return {'index': self.index, 'loss': loss}
 
     def save_checkpoint(self, checkpoint_dir: str) -> None:

@@ -44,6 +44,7 @@ class ExperimentGroup:
         num_actors: int = 4,
         simulator_config: str = phoss.common.DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: str = phoss.common.DEFAULT_SCHEDULER_CONFIG,
+        async_factor: bool = True,
         verbose: int = 0,
         save_dir: str = '',
     ):
@@ -59,6 +60,7 @@ class ExperimentGroup:
         self.num_actors = num_actors
         self.simulator_config = simulator_config
         self.scheduler_config = scheduler_config
+        self.async_factor = async_factor
         self.verbose = verbose
         self.save_dir = save_dir
 
@@ -184,6 +186,7 @@ class ExperimentGroup:
                 simulator_config=self.simulator_config,
                 scheduler_config=self.scheduler_config,
                 seed=seed,
+                async_factor=self.async_factor,
                 verbose=self.verbose,
                 save_dir=self.save_dir,
             )

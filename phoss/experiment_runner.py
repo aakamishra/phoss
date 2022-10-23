@@ -63,6 +63,7 @@ class ExperimentRunner:
         scheduler_object=None,
         simulator_config: str = phoss.common.DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: str = phoss.common.DEFAULT_SCHEDULER_CONFIG,
+        async_factor: bool = True,
         verbose: int = 0,
         save_dir: str = '',
     ) -> Optional[CheckpointObject]:
@@ -81,6 +82,7 @@ class ExperimentRunner:
                 cpus_per_trial=cpus_per_trial,
                 num_actors=num_actors,
                 seed=seed,
+                async_factor=async_factor,
                 verbose=verbose,
                 save_dir=save_dir
             )
@@ -99,6 +101,7 @@ class ExperimentRunner:
                 seed=seed,
                 simulator_config=simulator_config,
                 scheduler_config=scheduler_config,
+                async_factor=async_factor,
                 verbose=verbose,
                 save_dir=save_dir
             )
@@ -113,6 +116,7 @@ class ExperimentRunner:
         seed: int = 109,
         simulator_config: str = phoss.common.DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: str = phoss.common.DEFAULT_SCHEDULER_CONFIG,
+        async_factor: bool = True,
         verbose: int = 0,
         save_dir: str = '',
     ) -> CheckpointObject:
@@ -140,7 +144,8 @@ class ExperimentRunner:
             scheduler_config=scheduler_config,
             max_num_epochs=max_num_epochs,
             scheduler_name=sched_name,
-            seed=seed
+            seed=seed,
+            async_factor=async_factor
         )
         return ExperimentRunner._run_simulation(runner, verbose=verbose,
                                                 save_dir=save_dir)
@@ -153,6 +158,7 @@ class ExperimentRunner:
         cpus_per_trial: int = 1,
         num_actors: int = 4,
         seed: int = 109,
+        async_factor: bool = True,
         verbose: int = 0,
         save_dir: str = '',
     ) -> CheckpointObject:
@@ -178,7 +184,8 @@ class ExperimentRunner:
             scheduler_object=scheduler,
             max_num_epochs=max_num_epochs,
             scheduler_name='custom',
-            seed=seed
+            seed=seed,
+            async_factor=async_factor
         )
         return ExperimentRunner._run_simulation(runner, verbose=verbose,
                                                 save_dir=save_dir)

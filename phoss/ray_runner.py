@@ -24,7 +24,8 @@ class RayRunner:
         scheduler_object=None,
         simulator_config: str = phoss.common.DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: dict = None,
-        verbose: int = 0
+        async_factor: bool = True,
+        verbose: int = 0,
     ):
 
         # search and scheduler objects
@@ -46,6 +47,7 @@ class RayRunner:
         # hardware specifications
         self.gpus = gpus_per_trial
         self.cpus = cpus_per_trial
+        self.async_factor = async_factor
 
         # simulation dimension length arguments
         self.max_num_epochs = max_num_epochs
@@ -96,6 +98,9 @@ class RayRunner:
             'gen_sim_path': self.gen_sim_path,
             'index': tune.grid_search(list(range(self.num_samples))),
         }
+
+        if self.async_factor:
+            search_config['async_factor'] = tune.choice([0.0, 0.1, 0.2])
 
         tuner = tune.Tuner(
             tune.with_resources(

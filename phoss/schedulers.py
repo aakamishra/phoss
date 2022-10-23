@@ -46,7 +46,7 @@ class Scheduler:
             print('Using Median Rule')
             max_num_epochs = self.scheduler_config.get('max_t', 100)
             return MedianStoppingRule(
-                time_attr= 'training_iterations',
+                time_attr='training_iteration',
                 grace_period=0,
                 min_samples_required=5,
             )
