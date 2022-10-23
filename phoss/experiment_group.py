@@ -221,9 +221,7 @@ class ExperimentGroup:
             # TODO Reconcile which error to use (seed error, or value error)
             self.moving_loss_avgs = self._average_non_matching_lists(self.moving_loss_avgs)
             self.moving_loss_avgs_errs = self._average_non_matching_lists(self.moving_loss_avgs_errs)
-            print('Mean regrets', self.avg_mean_regrets)
             self.avg_cumulative_regrets, self.avg_cumulative_regrets_err = self._average_n_lists(self.cumulative_regrets)
-            print('Cumlative regrets', self.avg_cumulative_regrets)
             return ExperimentGroupResults(
                 self.scheduler_name, #TODO: Give option to pass in different name
                 len(self.checkpoints),
