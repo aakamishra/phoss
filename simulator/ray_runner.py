@@ -1,12 +1,6 @@
-from typing import Optional
-from schedulers import Scheduler
-from trainables import SimulatedTrainable
-from landscaper import NormalLossDecayLandscape
-from ray import tune
-from ray.tune.logger import CSVLoggerCallback
 import os
-from ray.air.config import RunConfig
 import ray
+<<<<<<< HEAD
 import argparse
 from datetime import datetime
 import json
@@ -18,9 +12,19 @@ from ray.tune.search.basic_variant import BasicVariantGenerator
 DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
 DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
 SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA", "Random", "Median"]
+=======
+from ray import tune
+from ray.air.config import RunConfig
+from ray.tune.logger import CSVLoggerCallback
+import common
+from landscaper import NormalLossDecayLandscape
+from schedulers import Scheduler
+from trainables import SimulatedTrainable
+>>>>>>> b2e03b25e6770f5dd497200cb12fab3f1ce74f55
 
 
 class RayRunner:
+
     def __init__(
         self,
         scheduler_name: str = 'ASHA',
@@ -32,7 +36,7 @@ class RayRunner:
         seed: int = 109,
         algo=None,
         scheduler_object=None,
-        simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
+        simulator_config: str = common.DEFAULT_SIMULATOR_CONFIG,
         scheduler_config: dict = None,
         verbose: int = 0
     ):
@@ -43,8 +47,11 @@ class RayRunner:
             assert scheduler_object is not None
             self.scheduler = scheduler_object
         else:
+            assert scheduler_name in common.SCHEDULER_CONFIG_NAMES
             self.scheduler = Scheduler(
-                scheduler_name, scheduler_config).get_instance()
+                scheduler_name,
+                scheduler_config
+            ).get_instance()
 
         self.algo = algo
         self.simulator_config = simulator_config
@@ -58,7 +65,7 @@ class RayRunner:
         self.max_num_epochs = max_num_epochs
         self.num_actors = num_actors
         self.num_samples = num_samples
-        self.gen_sim_path = ""
+        self.gen_sim_path = ''
 
         # randomness
         self.seed = seed
@@ -100,18 +107,16 @@ class RayRunner:
                                  'object_timeout_milliseconds': 9000000})
 
 
-        print("passing path: ",  self.gen_sim_path)
+        print('passing path: ',  self.gen_sim_path)
         search_config = {
             'gen_sim_path': self.gen_sim_path,
-            'index': tune.grid_search(
-                list(
-                    range(
-                        self.num_samples)))}
+            'index': tune.grid_search(list(range(self.num_samples))),
+        }
 
         tuner = tune.Tuner(
             tune.with_resources(
                 tune.with_parameters(SimulatedTrainable),
-                resources={'cpu': self.cpus, 'gpu': self.gpus}
+                resources={'cpu': self.cpus, 'gpu': self.gpus},
             ),
             tune_config=tune.TuneConfig(
                 metric='loss',
@@ -130,7 +135,7 @@ class RayRunner:
                 verbose=self.verbose,
                 sync_config=tune.SyncConfig(
                     syncer=None  # Disable syncing
-                )
+                ),
             ),
         )
 

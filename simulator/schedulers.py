@@ -1,9 +1,9 @@
-from ray.tune.schedulers import ASHAScheduler, HyperBandScheduler, PopulationBasedTraining, TrialScheduler, MedianStoppingRule, FIFOScheduler
-from ray import tune
 import logging
-from typing import Dict, Optional, Union, List
-
-import numpy as np
+from ray.tune.schedulers import (
+    ASHAScheduler, HyperBandScheduler, PopulationBasedTraining,
+    MedianStoppingRule, FIFOScheduler
+)
+from ray import tune
 
 
 logger = logging.getLogger(__name__)
@@ -31,14 +31,25 @@ class Scheduler:
                 reduction_factor=reduction_factor
             )
 
-        elif self.scheduler_name == "Hyperband":
-            print("using Hyperband")
-            max_num_epochs = self.scheduler_config.get("max_t", 100)
-            reduction_factor = self.scheduler_config.get("reduction_factor", 4)
+        elif self.scheduler_name == 'Hyperband':
+            print('using Hyperband')
+            max_num_epochs = self.scheduler_config.get('max_t', 100)
+            reduction_factor = self.scheduler_config.get('reduction_factor', 4)
 
-            return HyperBandScheduler(max_t=max_num_epochs,
-                                    time_attr="training_iteration",
-                                    reduction_factor=reduction_factor)
+            return HyperBandScheduler(
+                max_t=max_num_epochs,
+                time_attr='training_iteration',
+                reduction_factor=reduction_factor
+            )
+
+        elif self.scheduler_name == 'Median':
+            print('using Median Rule')
+            max_num_epochs = self.scheduler_config.get('max_t', 100)
+            return MedianStoppingRule(
+                time_attr= 'training_iterations',
+                grace_period=0,
+                min_samples_required=5,
+            )
 
         elif self.scheduler_name == "Median":
             print("using Median Rule")
@@ -66,3 +77,5 @@ class Scheduler:
             print("running Random Configurations")
             return FIFOScheduler()
 
+        print('running Random Configurations')
+        return FIFOScheduler()

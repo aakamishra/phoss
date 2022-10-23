@@ -1,23 +1,13 @@
-from typing import Optional
-from schedulers import Scheduler
-from trainables import SimulatedTrainable
-from landscaper import NormalLossDecayLandscape
-from ray import tune
-from ray.tune.logger import CSVLoggerCallback
-import os
-from ray.air.config import RunConfig
-import ray
 import argparse
 from datetime import datetime
 import json
+import os
+from typing import Optional
 import pandas as pd
 import numpy as np
+import ray
+import common
 from ray_runner import RayRunner
-
-
-DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
-DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
-SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "Median", "Random", "PredASHA"]
 
 
 class CheckpointObject:
@@ -72,8 +62,8 @@ class ExperimentRunner:
         num_actors: int = 4,
         seed: int = 109,
         scheduler_object=None,
-        simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
-        scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
+        simulator_config: str = common.DEFAULT_SIMULATOR_CONFIG,
+        scheduler_config: str = common.DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
         save_dir: str = '',
     ) -> Optional[CheckpointObject]:
@@ -96,7 +86,7 @@ class ExperimentRunner:
                 save_dir=save_dir
             )
         else:
-            if sched_name not in SCHEDULER_CONFIG_NAMES:
+            if sched_name not in common.SCHEDULER_CONFIG_NAMES:
                 print('Could not find sched_name {} in \
                     SCHEDULER_CONFIG_NAMES'.format(sched_name))
                 return None
@@ -122,8 +112,8 @@ class ExperimentRunner:
         cpus_per_trial: int = 1,
         num_actors: int = 4,
         seed: int = 109,
-        simulator_config: str = DEFAULT_SIMULATOR_CONFIG,
-        scheduler_config: str = DEFAULT_SCHEDULER_CONFIG,
+        simulator_config: str = common.DEFAULT_SIMULATOR_CONFIG,
+        scheduler_config: str = common.DEFAULT_SCHEDULER_CONFIG,
         verbose: int = 0,
         save_dir: str = '',
     ) -> CheckpointObject:
@@ -209,7 +199,7 @@ class ExperimentRunner:
         print('Saving results at', path)
         if not os.path.exists(path):
             os.mkdir(path)
-        
+
         true_sim_path = os.path.join(path,
                                      runner.simulation_name + '-true-sim.csv')
         gen_sim_path = os.path.join(path,
@@ -234,7 +224,7 @@ class ExperimentRunner:
         ray.shutdown()
 
         # move total data to csv
-        if verbose: print("saving trial results")
+        if verbose: print('saving trial results')
         data_path = os.path.join(path, runner.simulation_name + '-data.csv')
         data.to_csv(data_path)
 
@@ -269,9 +259,9 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=109)
     parser.add_argument('--verbose', type=int, default=0)
     parser.add_argument('--simulator-config', type=str,
-                        default=DEFAULT_SIMULATOR_CONFIG)
+                        default=common.DEFAULT_SIMULATOR_CONFIG)
     parser.add_argument('--scheduler-config', type=str,
-                        default=DEFAULT_SCHEDULER_CONFIG)
+                        default=common.DEFAULT_SCHEDULER_CONFIG)
     parser.add_argument('--save', type=str, default='')
 
     args = parser.parse_args()
