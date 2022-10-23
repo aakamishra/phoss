@@ -3,6 +3,9 @@
 PHOSS is an open source Python hyperparameter search simulation platform for
 distributed testing of scheduling algorithms.
 
+By Aakash Mishra, Jeremy Hsu, Frank D'Agostino, and Rajat Mittal.
+Sponsored by the Harvard Data Systems Lab.
+
 ## Installing from PyPI
 
 To install PHOSS, run
