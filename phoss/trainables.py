@@ -47,7 +47,7 @@ class SimulatedTrainable(tune.Trainable):
             self.index = new_config.get('index')
             self.series = self.values[:,self.index]
             self.internal_training_iteration = 0
-            self.async_factor = config.get('async_factor', 0.0)
+            self.async_factor = new_config.get('async_factor', 0.0)
             return True
         else:
             return False
