@@ -1,6 +1,5 @@
 import os
 import ray
-<<<<<<< HEAD
 import argparse
 from datetime import datetime
 import json
@@ -12,15 +11,6 @@ from ray.tune.search.basic_variant import BasicVariantGenerator
 DEFAULT_SIMULATOR_CONFIG = "simulator_configs/default_config.json"
 DEFAULT_SCHEDULER_CONFIG = "scheduler_configs/default_config.json"
 SCHEDULER_CONFIG_NAMES = ["ASHA", "Hyperband", "PBT", "PredASHA", "Random", "Median"]
-=======
-from ray import tune
-from ray.air.config import RunConfig
-from ray.tune.logger import CSVLoggerCallback
-import common
-from landscaper import NormalLossDecayLandscape
-from schedulers import Scheduler
-from trainables import SimulatedTrainable
->>>>>>> b2e03b25e6770f5dd497200cb12fab3f1ce74f55
 
 
 class RayRunner:

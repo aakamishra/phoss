@@ -66,12 +66,7 @@ class SimulatedTrainable(tune.Trainable):
         """
         loss = self.series[self.training_iteration]
         self.internal_training_iteration += 1
-<<<<<<< HEAD
-        time.sleep(0.5)
-        return {"index": self.index, "loss": loss}
-=======
         return {'index': self.index, 'loss': loss}
->>>>>>> b2e03b25e6770f5dd497200cb12fab3f1ce74f55
 
     def save_checkpoint(self, checkpoint_dir: str) -> None:
         """
